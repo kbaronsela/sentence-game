@@ -133,6 +133,9 @@
     if (room.phase === "lobby") {
       prevWasMyTurnWhilePlaying = false;
       showScreen("lobby");
+      const solo = !!room.solo;
+      $("lobby-code-row").hidden = solo;
+      $("lobby-hint-solo").hidden = !solo;
       $("lobby-code").textContent = room.code;
       const list = $("lobby-players");
       list.innerHTML = "";
@@ -207,6 +210,15 @@
     const name = readName();
     if (!name) return;
     socket.emit("room:create", { name, clientId: getClientId() }, (res) => {
+      if (res && res.ok) applyRoom(res.room);
+      else setError($("enter-error"), (res && res.error) || "שגיאה");
+    });
+  });
+
+  $("btn-solo").addEventListener("click", () => {
+    const name = readName();
+    if (!name) return;
+    socket.emit("room:createSolo", { name, clientId: getClientId() }, (res) => {
       if (res && res.ok) applyRoom(res.room);
       else setError($("enter-error"), (res && res.error) || "שגיאה");
     });

@@ -40,6 +40,7 @@ function createRoom(hostSocketId, hostName, clientId) {
 
   const room = {
     code,
+    solo: false,
     hostId: hostSocketId,
     players: [{ id: hostSocketId, name: hostName, clientId }],
     segments: [],
@@ -51,6 +52,64 @@ function createRoom(hostSocketId, hostName, clientId) {
   return room;
 }
 
+function createSoloRoom(hostSocketId, hostName, clientId) {
+  let code;
+  do {
+    code = randomRoomCode();
+  } while (rooms.has(code));
+
+  const botId = `bot:${code}`;
+  const room = {
+    code,
+    solo: true,
+    hostId: hostSocketId,
+    players: [
+      { id: hostSocketId, name: hostName, clientId },
+      { id: botId, name: "בוט", clientId: "bot", isBot: true },
+    ],
+    segments: [],
+    turnIndex: 0,
+    phase: "lobby",
+    lastWord: null,
+  };
+  rooms.set(code, room);
+  return room;
+}
+
+function generateBotSentence(seed) {
+  const s = (seed || "זה").trim();
+  const lines = [
+    `פתאום ראיתי את ${s} ולא האמנתי למה שקורה.`,
+    `אמרתי לעצמי: אם ${s} כאן, אני עובר לצד השני של הרחוב.`,
+    `הסיפור התחיל בדיוק כשהבנתי שמדובר ב${s}.`,
+    `כל אחד דיבר על ${s} בלשון אחרת, אבל אף אחד לא הבין.`,
+    `בגלל ${s} החלטתי לקחת הפסקה קצרה ולשתות קפה.`,
+    `בלילה הזה ${s} נראה לי כמו סימן מהעתיד.`,
+    `הדלת נפתחה ואז הופיע ${s} בלי להקדים מילה.`,
+    `שאלתי את עצמי איך ${s} קשור לכל הסיפור הזה.`,
+  ];
+  return lines[Math.floor(Math.random() * lines.length)];
+}
+
+function scheduleBotTurn(io, roomCode) {
+  const delay = 650 + Math.floor(Math.random() * 550);
+  setTimeout(() => {
+    const room = rooms.get(roomCode);
+    if (!room || room.phase !== "playing") return;
+    const len = room.players.length;
+    const cur = room.players[room.turnIndex % len];
+    if (!cur || !cur.isBot) return;
+    const seed = room.lastWord || "";
+    const text = generateBotSentence(seed);
+    room.segments.push({ name: cur.name, text });
+    room.lastWord = getLastWord(text);
+    room.turnIndex = (room.turnIndex + 1) % len;
+    broadcastRoom(io, room);
+    const next = room.players[room.turnIndex % len];
+    if (next && next.isBot) scheduleBotTurn(io, roomCode);
+  }, delay);
+}
+
 function leaveRoom(socketId, io) {
   for (const [code, room] of rooms.entries()) {
     const idx = room.players.findIndex((p) => p.id === socketId);
@@ -58,6 +117,10 @@ function leaveRoom(socketId, io) {
 
     room.players.splice(idx, 1);
     if (room.players.length === 0) {
+      rooms.delete(code);
+      return;
+    }
+    if (room.solo) {
       rooms.delete(code);
       return;
     }
@@ -97,6 +160,7 @@ function serializeRoom(room, forSocketId) {
 
   return {
     code: room.code,
+    solo: !!room.solo,
     phase: room.phase,
     players: room.players.map((p) => ({ name: p.name, isYou: p.id === forSocketId })),
     isHost,
@@ -131,11 +195,13 @@ function broadcastRoom(io, room) {
       }
       for (const p of room.players) {
         if (got.has(p.id)) continue;
+        if (p.isBot) continue;
         io.to(p.id).emit("room:update", serializeRoom(room, p.id));
       }
     })
     .catch(() => {
       room.players.forEach((p) => {
+        if (p.isBot) return;
         io.to(p.id).emit("room:update", serializeRoom(room, p.id));
       });
     });
@@ -219,6 +285,22 @@ io.on("connection", (socket) => {
     else socket.emit("room:update", serializeRoom(room, socket.id));
   });
 
+  socket.on("room:createSolo", (payload, cb) => {
+    const nv = normalizePlayerName(payload && payload.name);
+    if (!nv.ok) {
+      if (typeof cb === "function") cb({ ok: false, error: nv.error });
+      return;
+    }
+    const clientId =
+      (payload && payload.clientId && String(payload.clientId)) || crypto.randomUUID();
+    const room = createSoloRoom(socket.id, nv.name, clientId);
+    socket.join(room.code);
+    socket.data.roomCode = room.code;
+    socket.data.clientId = clientId;
+    if (typeof cb === "function") cb({ ok: true, room: serializeRoom(room, socket.id) });
+    else socket.emit("room:update", serializeRoom(room, socket.id));
+  });
+
   socket.on("room:join", (payload, cb) => {
     const code = normalizeRoomCode((payload && payload.code) || "");
     const nv = normalizePlayerName(payload && payload.name);
@@ -239,6 +321,10 @@ io.on("connection", (socket) => {
     }
     if (room.phase !== "lobby") {
       if (typeof cb === "function") cb({ ok: false, error: "המשחק כבר התחיל" });
+      return;
+    }
+    if (room.solo) {
+      if (typeof cb === "function") cb({ ok: false, error: "לא ניתן להצטרף — זה משחק מול בוט" });
       return;
     }
     room.players.push({ id: socket.id, name: nv.name, clientId });
@@ -326,6 +412,10 @@ io.on("connection", (socket) => {
     room.turnIndex = (room.turnIndex + 1) % len;
     broadcastRoom(io, room);
     if (typeof cb === "function") cb({ ok: true });
+    const nextAfter = room.players[room.turnIndex % len];
+    if (nextAfter && nextAfter.isBot) {
+      scheduleBotTurn(io, code);
+    }
   });
 
   socket.on("room:reset", (payload, cb) => {

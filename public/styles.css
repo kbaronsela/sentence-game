@@ -215,6 +215,23 @@ textarea:focus {
   border-color: rgba(16, 185, 129, 0.5);
 }
 
+.btn.bot {
+  background: linear-gradient(145deg, #fce7f3 0%, #fef3c7 50%, #dbeafe 100%);
+  color: #6b21a8;
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  box-shadow: 0 2px 12px rgba(236, 72, 153, 0.15);
+}
+
+.btn.bot:hover:not(:disabled) {
+  filter: brightness(1.03);
+  border-color: rgba(139, 92, 246, 0.5);
+}
+
+.bot-hint {
+  margin-top: 0.35rem !important;
+  font-size: 0.86rem !important;
+}
+
 .btn.danger.ghost {
   background: #fff1f2;
   color: #be123c;

@@ -42,7 +42,9 @@
         <p class="hint enter-hint">יופיע קוד חדר; תעבירו אותו (או את הקישור) לשאר השחקנים.</p>
         <div class="actions stack">
           <button type="button" class="btn primary" id="btn-create">צור חדר חדש</button>
+          <button type="button" class="btn bot" id="btn-solo">שחק מול בוט</button>
         </div>
+        <p class="hint enter-hint bot-hint">משחק לבד — הבוט ימשיך את הסיפור לפי המילה האחרונה שלך.</p>
 
         <h2 class="enter-step-title">שחקנים אחרים — נכנסים לחדר קיים</h2>
         <p class="hint enter-hint">
@@ -68,12 +70,15 @@
       </section>
 
       <section id="screen-lobby" class="card screen" hidden>
-        <p class="room-code-line">
-          קוד החדר:
-          <strong id="lobby-code" class="mono" dir="ltr"></strong>
-          <button type="button" class="btn tiny ghost" id="btn-copy-code" title="העתקת קישור לחדר">העתק קישור</button>
-        </p>
-        <p class="hint">שלחו את הקוד או את הקישור לחברים — כולם נכנסים מאותו כתובת אינטרנט.</p>
+        <div id="lobby-code-row">
+          <p class="room-code-line">
+            קוד החדר:
+            <strong id="lobby-code" class="mono" dir="ltr"></strong>
+            <button type="button" class="btn tiny ghost" id="btn-copy-code" title="העתקת קישור לחדר">העתק קישור</button>
+          </p>
+          <p id="lobby-hint-multi" class="hint">שלחו את הקוד או את הקישור לחברים — כולם נכנסים מאותו כתובת אינטרנט.</p>
+        </div>
+        <p id="lobby-hint-solo" class="hint" hidden>משחק מול הבוט — לחצו ״התחל משחק״ כשמוכנים.</p>
         <h2 class="section-title">שחקנים</h2>
         <ul id="lobby-players" class="player-list"></ul>
         <div class="actions stack" id="lobby-actions">
