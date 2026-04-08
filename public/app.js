@@ -8,7 +8,22 @@
     reveal: $("screen-reveal"),
   };
 
-  const socket = io({ transports: ["websocket", "polling"] });
+  const socket = io({
+    transports: ["polling", "websocket"],
+    reconnection: true,
+    reconnectionAttempts: 20,
+    reconnectionDelayMax: 10000,
+  });
+
+  function requestRoomSync() {
+    socket.emit("room:requestSync");
+  }
+
+  socket.on("connect", requestRoomSync);
+  socket.on("reconnect", requestRoomSync);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && socket.connected) requestRoomSync();
+  });
 
   function showScreen(name) {
     Object.keys(screens).forEach((k) => {

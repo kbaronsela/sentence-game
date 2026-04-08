@@ -61,9 +61,7 @@ function leaveRoom(socketId, io) {
         room.turnIndex = room.turnIndex % len;
       }
     }
-    room.players.forEach((p) => {
-      io.to(p.id).emit("room:update", serializeRoom(room, p.id));
-    });
+    broadcastRoom(io, room);
     return;
   }
 }
@@ -145,7 +143,23 @@ function httpHandler(req, res) {
 }
 
 const server = http.createServer(httpHandler);
-const io = new Server(server, { cors: { origin: "*" } });
+const io = new Server(server, {
+  cors: { origin: "*" },
+  transports: ["websocket", "polling"],
+  pingTimeout: 120000,
+  pingInterval: 25000,
+  connectTimeout: 45000,
+});
+
+/** שליחת מצב מותאם אישית לכל שחקן מחובר (אמין יותר מ-io.to(id) בפרודקשן) */
+function broadcastRoom(io, room) {
+  room.players.forEach((p) => {
+    const sock = io.sockets.sockets.get(p.id);
+    if (sock && sock.connected) {
+      sock.emit("room:update", serializeRoom(room, p.id));
+    }
+  });
+}
 
 io.on("connection", (socket) => {
   socket.on("room:create", (payload, cb) => {
@@ -175,9 +189,14 @@ io.on("connection", (socket) => {
     socket.join(code);
     socket.data.roomCode = code;
     if (typeof cb === "function") cb({ ok: true, room: serializeRoom(room, socket.id) });
-    room.players.forEach((p) => {
-      io.to(p.id).emit("room:update", serializeRoom(room, p.id));
-    });
+    broadcastRoom(io, room);
+  });
+
+  socket.on("room:requestSync", () => {
+    const code = socket.data.roomCode;
+    const room = code && rooms.get(code);
+    if (!room || !room.players.some((p) => p.id === socket.id)) return;
+    socket.emit("room:update", serializeRoom(room, socket.id));
   });
 
   socket.on("room:start", (payload, cb) => {
@@ -195,9 +214,7 @@ io.on("connection", (socket) => {
     room.turnIndex = 0;
     room.segments = [];
     room.lastWord = null;
-    room.players.forEach((p) => {
-      io.to(p.id).emit("room:update", serializeRoom(room, p.id));
-    });
+    broadcastRoom(io, room);
     if (typeof cb === "function") cb({ ok: true });
   });
 
@@ -226,17 +243,13 @@ io.on("connection", (socket) => {
 
     if (endStory) {
       room.phase = "revealed";
-      room.players.forEach((p) => {
-        io.to(p.id).emit("room:update", serializeRoom(room, p.id));
-      });
+      broadcastRoom(io, room);
       if (typeof cb === "function") cb({ ok: true });
       return;
     }
 
     room.turnIndex = (room.turnIndex + 1) % len;
-    room.players.forEach((p) => {
-      io.to(p.id).emit("room:update", serializeRoom(room, p.id));
-    });
+    broadcastRoom(io, room);
     if (typeof cb === "function") cb({ ok: true });
   });
 
@@ -251,9 +264,7 @@ io.on("connection", (socket) => {
     room.segments = [];
     room.turnIndex = 0;
     room.lastWord = null;
-    room.players.forEach((p) => {
-      io.to(p.id).emit("room:update", serializeRoom(room, p.id));
-    });
+    broadcastRoom(io, room);
     if (typeof cb === "function") cb({ ok: true });
   });
 
