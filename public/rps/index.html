@@ -8,13 +8,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="rps-bg" aria-hidden="true"></div>
+    <div class="bg-pattern" aria-hidden="true"></div>
     <main class="shell">
       <p class="sub-nav"><a href="/">← משחקי ילדות</a></p>
       <header class="hero">
@@ -23,16 +23,34 @@
       </header>
 
       <section id="screen-enter" class="card screen">
+        <p class="enter-intro">
+          כל שחקן נכנס מהמכשיר שלו לאותה כתובת (למשל מהקישור ששלחתם). קודם בוחרים שם, ואז או פותחים חדר או מצטרפים לחדר של מישהו אחר.
+        </p>
         <label class="field">
           <span>איך קוראים לך? <span class="req-mark" aria-hidden="true">*</span></span>
-          <input type="text" id="input-name" maxlength="24" placeholder="השם שלך" required />
+          <input
+            type="text"
+            id="input-name"
+            maxlength="24"
+            placeholder="השם שלך"
+            autocomplete="nickname"
+            required
+            aria-required="true"
+          />
         </label>
-        <h2 class="enter-step-title">שחק מול אדם אחר</h2>
-        <p class="hint">צרו חדר והעבירו את הקוד או הקישור ליריבה.</p>
+
+        <h2 class="enter-step-title">מארח/ת — פותחים משחק</h2>
+        <p class="hint enter-hint">יופיע קוד חדר; תעבירו אותו (או את הקישור) ליריבה.</p>
         <div class="actions stack">
-          <button type="button" class="btn primary" id="btn-create">צור חדר</button>
+          <button type="button" class="btn primary" id="btn-create">צור חדר חדש</button>
+          <button type="button" class="btn bot" id="btn-solo">שחק מול בוט</button>
         </div>
-        <h2 class="enter-step-title">או הצטרפות לחדר</h2>
+        <p class="hint enter-hint bot-hint">משחק מהיר מול המחשב — הבוט בוחר אבן, נייר או מספריים.</p>
+
+        <h2 class="enter-step-title">שחקנים אחרים — נכנסים לחדר קיים</h2>
+        <p class="hint enter-hint">
+          הזינו כאן את <strong>קוד החדר</strong> — <strong>6 ספרות</strong> שקיבלתם מהמארח (למשל <span class="mono" dir="ltr">482913</span>), ואז לוחצים ״הצטרף״.
+        </p>
         <div class="join-row">
           <input
             type="text"
@@ -40,35 +58,35 @@
             class="code-input"
             maxlength="6"
             inputmode="numeric"
+            pattern="[0-9]*"
             placeholder="6 ספרות"
             dir="ltr"
             autocomplete="off"
+            aria-label="קוד החדר — 6 ספרות"
           />
-          <button type="button" class="btn secondary" id="btn-join">הצטרף</button>
+          <button type="button" class="btn secondary" id="btn-join">הצטרף לחדר</button>
         </div>
-        <h2 class="enter-step-title">מול בוט</h2>
-        <p class="hint">משחק מהיר מול המחשב.</p>
-        <div class="actions stack">
-          <button type="button" class="btn bot" id="btn-solo">שחק מול בוט</button>
-        </div>
+
         <p id="enter-error" class="error" role="alert" hidden></p>
       </section>
 
       <section id="screen-lobby" class="card screen" hidden>
         <div id="lobby-code-row">
-          <p>קוד החדר: <strong id="lobby-code" class="mono" dir="ltr"></strong>
-            <button type="button" class="btn secondary" id="btn-copy" style="margin-inline-start: 0.5rem; padding: 0.35rem 0.65rem; font-size: 0.85rem">העתק קישור</button>
+          <p class="room-code-line">
+            קוד החדר:
+            <strong id="lobby-code" class="mono" dir="ltr"></strong>
+            <button type="button" class="btn tiny ghost" id="btn-copy-code" title="העתקת קישור לחדר">העתק קישור</button>
           </p>
-          <p class="hint" id="lobby-hint-pvp">שלחו את הקוד או את הקישור ליריבה.</p>
+          <p id="lobby-hint-multi" class="hint">שלחו את הקוד או את הקישור ליריבה — שניכם נכנסים מאותה כתובת אינטרנט.</p>
         </div>
-        <p class="hint" id="lobby-hint-solo" hidden>מול הבוט — לחצו ״התחל״ כשמוכנים.</p>
+        <p id="lobby-hint-solo" class="hint" hidden>משחק מול הבוט — לחצו ״התחל משחק״ כשמוכנים.</p>
         <h2 class="section-title">שחקנים</h2>
         <ul id="lobby-players" class="player-list"></ul>
-        <div class="actions stack">
-          <button type="button" class="btn secondary" id="btn-lobby-back">חזרה</button>
-          <button type="button" class="btn primary" id="btn-start" disabled>התחל</button>
+        <div class="actions stack" id="lobby-actions">
+          <button type="button" class="btn secondary" id="btn-lobby-back">חזרה למסך הכניסה</button>
+          <button type="button" class="btn primary" id="btn-start" disabled>התחל משחק</button>
         </div>
-        <p id="lobby-host-hint" class="hint subtle" hidden>נדרשים שני שחקנים (או מצב בוט עם שני ״שחקנים״).</p>
+        <p id="lobby-host-hint" class="hint subtle" hidden>נדרשים לפחות שני שחקנים כדי להתחיל.</p>
       </section>
 
       <section id="screen-pick" class="card screen" hidden>

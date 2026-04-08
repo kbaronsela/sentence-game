@@ -114,7 +114,7 @@
       showScreen("lobby");
       const solo = !!room.solo;
       $("lobby-code-row").hidden = solo;
-      $("lobby-hint-pvp").hidden = solo;
+      $("lobby-hint-multi").hidden = solo;
       $("lobby-hint-solo").hidden = !solo;
       $("lobby-code").textContent = room.code;
       const list = $("lobby-players");
@@ -248,21 +248,22 @@
     });
   });
 
-  $("btn-copy").addEventListener("click", async () => {
+  $("btn-copy-code").addEventListener("click", async () => {
     const code = $("lobby-code").textContent;
     const url = `${window.location.origin}/rps/?room=${encodeURIComponent(code)}`;
+    const btn = $("btn-copy-code");
     try {
       await navigator.clipboard.writeText(url);
-      $("btn-copy").textContent = "הועתק!";
+      btn.textContent = "הועתק!";
       setTimeout(() => {
-        $("btn-copy").textContent = "העתק קישור";
+        btn.textContent = "העתק קישור";
       }, 2000);
     } catch {
       try {
         await navigator.clipboard.writeText(code);
-        $("btn-copy").textContent = "הועתק!";
+        btn.textContent = "הועתק!";
         setTimeout(() => {
-          $("btn-copy").textContent = "העתק קישור";
+          btn.textContent = "העתק קישור";
         }, 2000);
       } catch {
         prompt("העתיקו את הקישור:", url);
