@@ -16,6 +16,13 @@ function normalizeRoomCode(raw) {
   return String(raw || "").replace(/\D/g, "");
 }
 
+function normalizePlayerName(raw) {
+  const t = String(raw || "").trim();
+  if (!t) return { ok: false, error: "נא למלא שם" };
+  if (t.length > 24) return { ok: false, error: "שם ארוך מדי" };
+  return { ok: true, name: t };
+}
+
 function getLastWord(text) {
   const trimmed = String(text).trim();
   if (!trimmed) return "";
@@ -34,7 +41,7 @@ function createRoom(hostSocketId, hostName, clientId) {
   const room = {
     code,
     hostId: hostSocketId,
-    players: [{ id: hostSocketId, name: hostName.trim() || "שחקן", clientId }],
+    players: [{ id: hostSocketId, name: hostName, clientId }],
     segments: [],
     turnIndex: 0,
     phase: "lobby",
@@ -197,10 +204,14 @@ io.on("connection", (socket) => {
   });
 
   socket.on("room:create", (payload, cb) => {
-    const name = (payload && payload.name) || "שחקן";
+    const nv = normalizePlayerName(payload && payload.name);
+    if (!nv.ok) {
+      if (typeof cb === "function") cb({ ok: false, error: nv.error });
+      return;
+    }
     const clientId =
       (payload && payload.clientId && String(payload.clientId)) || crypto.randomUUID();
-    const room = createRoom(socket.id, name, clientId);
+    const room = createRoom(socket.id, nv.name, clientId);
     socket.join(room.code);
     socket.data.roomCode = room.code;
     socket.data.clientId = clientId;
@@ -210,7 +221,11 @@ io.on("connection", (socket) => {
 
   socket.on("room:join", (payload, cb) => {
     const code = normalizeRoomCode((payload && payload.code) || "");
-    const name = (payload && payload.name) || "שחקן";
+    const nv = normalizePlayerName(payload && payload.name);
+    if (!nv.ok) {
+      if (typeof cb === "function") cb({ ok: false, error: nv.error });
+      return;
+    }
     if (code.length !== 6) {
       if (typeof cb === "function") cb({ ok: false, error: "הקוד הוא 6 ספרות" });
       return;
@@ -226,12 +241,30 @@ io.on("connection", (socket) => {
       if (typeof cb === "function") cb({ ok: false, error: "המשחק כבר התחיל" });
       return;
     }
-    room.players.push({ id: socket.id, name: name.trim() || "שחקן", clientId });
+    room.players.push({ id: socket.id, name: nv.name, clientId });
     socket.join(code);
     socket.data.roomCode = code;
     socket.data.clientId = clientId;
     if (typeof cb === "function") cb({ ok: true, room: serializeRoom(room, socket.id) });
     broadcastRoom(io, room);
+  });
+
+  socket.on("room:leave", (payload, cb) => {
+    const code = socket.data.roomCode;
+    const room = code && rooms.get(code);
+    if (!room) {
+      if (typeof cb === "function") cb({ ok: false, error: "לא בחדר" });
+      return;
+    }
+    if (room.phase !== "lobby") {
+      if (typeof cb === "function") cb({ ok: false, error: "לא ניתן לצאת מהחדר במהלך המשחק" });
+      return;
+    }
+    leaveRoom(socket.id, io);
+    socket.leave(code);
+    delete socket.data.roomCode;
+    socket.emit("room:update", null);
+    if (typeof cb === "function") cb({ ok: true });
   });
 
   socket.on("room:requestSync", () => {

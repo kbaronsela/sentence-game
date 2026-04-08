@@ -26,8 +26,16 @@
           כל שחקן נכנס מהמכשיר שלו לאותה כתובת (למשל מהקישור ששלחתם). קודם בוחרים שם, ואז או פותחים חדר או מצטרפים לחדר של מישהו אחר.
         </p>
         <label class="field">
-          <span>איך קוראים לך?</span>
-          <input type="text" id="input-name" maxlength="24" placeholder="השם שלך" autocomplete="nickname" />
+          <span>איך קוראים לך? <span class="req-mark" aria-hidden="true">*</span></span>
+          <input
+            type="text"
+            id="input-name"
+            maxlength="24"
+            placeholder="השם שלך"
+            autocomplete="nickname"
+            required
+            aria-required="true"
+          />
         </label>
 
         <h2 class="enter-step-title">מארח/ת — פותחים משחק</h2>
@@ -68,7 +76,8 @@
         <p class="hint">שלחו את הקוד או את הקישור לחברים — כולם נכנסים מאותו כתובת אינטרנט.</p>
         <h2 class="section-title">שחקנים</h2>
         <ul id="lobby-players" class="player-list"></ul>
-        <div class="actions" id="lobby-actions">
+        <div class="actions stack" id="lobby-actions">
+          <button type="button" class="btn secondary" id="btn-lobby-back">חזרה למסך הכניסה</button>
           <button type="button" class="btn primary" id="btn-start" disabled>התחל משחק</button>
         </div>
         <p id="lobby-hint-host" class="hint subtle" hidden>נדרשים לפחות שני שחקנים כדי להתחיל.</p>

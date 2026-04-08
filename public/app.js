@@ -109,6 +109,17 @@
     }
   }
 
+  function readName() {
+    const el = $("input-name");
+    const name = el.value.trim();
+    if (!name) {
+      setError($("enter-error"), "נא למלא שם");
+      el.focus();
+      return null;
+    }
+    return name;
+  }
+
   function applyRoom(room) {
     setError($("enter-error"), null);
     setError($("play-error"), null);
@@ -193,7 +204,8 @@
   });
 
   $("btn-create").addEventListener("click", () => {
-    const name = $("input-name").value.trim() || "שחקן";
+    const name = readName();
+    if (!name) return;
     socket.emit("room:create", { name, clientId: getClientId() }, (res) => {
       if (res && res.ok) applyRoom(res.room);
       else setError($("enter-error"), (res && res.error) || "שגיאה");
@@ -201,7 +213,8 @@
   });
 
   $("btn-join").addEventListener("click", () => {
-    const name = $("input-name").value.trim() || "שחקן";
+    const name = readName();
+    if (!name) return;
     const code = $("input-code").value.replace(/\D/g, "");
     if (code.length !== 6) {
       setError($("enter-error"), "הזינו קוד בן 6 ספרות");
@@ -210,6 +223,13 @@
     socket.emit("room:join", { name, code, clientId: getClientId() }, (res) => {
       if (res && res.ok) applyRoom(res.room);
       else setError($("enter-error"), (res && res.error) || "שגיאה");
+    });
+  });
+
+  $("btn-lobby-back").addEventListener("click", () => {
+    socket.emit("room:leave", {}, (res) => {
+      if (res && res.ok) applyRoom(null);
+      else alert((res && res.error) || "לא ניתן לצאת מהחדר");
     });
   });
 

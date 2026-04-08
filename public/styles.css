@@ -129,6 +129,11 @@ body {
   font-weight: 600;
 }
 
+.req-mark {
+  color: #dc2626;
+  font-weight: 700;
+}
+
 input,
 textarea,
 .code-input {
