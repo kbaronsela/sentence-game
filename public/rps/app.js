@@ -2,9 +2,9 @@
   const $ = (id) => document.getElementById(id);
 
   const CHOICE_META = {
-    rock: { emoji: "🪨", label: "אבן" },
-    paper: { emoji: "📄", label: "נייר" },
-    scissors: { emoji: "✂️", label: "מספריים" },
+    rock: { emoji: "✊", label: "אבן" },
+    paper: { emoji: "✋", label: "נייר" },
+    scissors: { emoji: "✌️", label: "מספריים" },
   };
 
   const screens = {
