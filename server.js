@@ -1,6 +1,7 @@
 const http = require("http");
 const path = require("path");
 const fs = require("fs");
+const crypto = require("crypto");
 const { Server } = require("socket.io");
 
 const PORT = process.env.PORT || 3456;
@@ -23,7 +24,7 @@ function getLastWord(text) {
   return w;
 }
 
-function createRoom(hostSocketId, hostName) {
+function createRoom(hostSocketId, hostName, clientId) {
   let code;
   do {
     code = randomRoomCode();
@@ -32,7 +33,7 @@ function createRoom(hostSocketId, hostName) {
   const room = {
     code,
     hostId: hostSocketId,
-    players: [{ id: hostSocketId, name: hostName.trim() || "שחקן" }],
+    players: [{ id: hostSocketId, name: hostName.trim() || "שחקן", clientId }],
     segments: [],
     turnIndex: 0,
     phase: "lobby",
@@ -84,9 +85,7 @@ function serializeRoom(room, forSocketId) {
   }
 
   const currentTurnName =
-    room.phase === "playing" && len > 0
-      ? room.players[room.turnIndex % len]?.name || ""
-      : "";
+    room.phase === "playing" && len > 0 ? room.players[room.turnIndex % len]?.name || "" : "";
 
   return {
     code: room.code,
@@ -106,6 +105,32 @@ function serializeRoom(room, forSocketId) {
           }))
         : null,
   };
+}
+
+/** שידור לכל מי שבחדר ה-socket (מסתמך על join ל-room.code), עם גיבוי ל-io.to */
+function broadcastRoom(io, room) {
+  const code = room.code;
+  const allowed = new Set(room.players.map((p) => p.id));
+
+  io.in(code)
+    .fetchSockets()
+    .then((socks) => {
+      const got = new Set();
+      for (const s of socks) {
+        if (!allowed.has(s.id)) continue;
+        s.emit("room:update", serializeRoom(room, s.id));
+        got.add(s.id);
+      }
+      for (const p of room.players) {
+        if (got.has(p.id)) continue;
+        io.to(p.id).emit("room:update", serializeRoom(room, p.id));
+      }
+    })
+    .catch(() => {
+      room.players.forEach((p) => {
+        io.to(p.id).emit("room:update", serializeRoom(room, p.id));
+      });
+    });
 }
 
 function httpHandler(req, res) {
@@ -149,24 +174,35 @@ const io = new Server(server, {
   pingTimeout: 120000,
   pingInterval: 25000,
   connectTimeout: 45000,
+  allowEIO3: false,
 });
 
-/** שליחת מצב מותאם אישית לכל שחקן מחובר (אמין יותר מ-io.to(id) בפרודקשן) */
-function broadcastRoom(io, room) {
-  room.players.forEach((p) => {
-    const sock = io.sockets.sockets.get(p.id);
-    if (sock && sock.connected) {
-      sock.emit("room:update", serializeRoom(room, p.id));
+io.on("connection", (socket) => {
+  socket.on("session:bind", (payload) => {
+    const clientId = payload && payload.clientId;
+    if (!clientId || typeof clientId !== "string") return;
+
+    for (const room of rooms.values()) {
+      const p = room.players.find((x) => x.clientId === clientId);
+      if (!p) continue;
+
+      p.id = socket.id;
+      socket.data.roomCode = room.code;
+      socket.data.clientId = clientId;
+      socket.join(room.code);
+      broadcastRoom(io, room);
+      return;
     }
   });
-}
 
-io.on("connection", (socket) => {
   socket.on("room:create", (payload, cb) => {
     const name = (payload && payload.name) || "שחקן";
-    const room = createRoom(socket.id, name);
+    const clientId =
+      (payload && payload.clientId && String(payload.clientId)) || crypto.randomUUID();
+    const room = createRoom(socket.id, name, clientId);
     socket.join(room.code);
     socket.data.roomCode = room.code;
+    socket.data.clientId = clientId;
     if (typeof cb === "function") cb({ ok: true, room: serializeRoom(room, socket.id) });
     else socket.emit("room:update", serializeRoom(room, socket.id));
   });
@@ -176,6 +212,8 @@ io.on("connection", (socket) => {
       .trim()
       .toUpperCase();
     const name = (payload && payload.name) || "שחקן";
+    const clientId =
+      (payload && payload.clientId && String(payload.clientId)) || crypto.randomUUID();
     const room = rooms.get(code);
     if (!room) {
       if (typeof cb === "function") cb({ ok: false, error: "החדר לא נמצא" });
@@ -185,9 +223,10 @@ io.on("connection", (socket) => {
       if (typeof cb === "function") cb({ ok: false, error: "המשחק כבר התחיל" });
       return;
     }
-    room.players.push({ id: socket.id, name: name.trim() || "שחקן" });
+    room.players.push({ id: socket.id, name: name.trim() || "שחקן", clientId });
     socket.join(code);
     socket.data.roomCode = code;
+    socket.data.clientId = clientId;
     if (typeof cb === "function") cb({ ok: true, room: serializeRoom(room, socket.id) });
     broadcastRoom(io, room);
   });
@@ -269,6 +308,18 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
+    const code = socket.data.roomCode;
+    const room = code && rooms.get(code);
+    if (room && room.phase === "playing") {
+      const sid = socket.id;
+      setTimeout(() => {
+        const r = rooms.get(code);
+        if (!r) return;
+        const stillThere = r.players.some((p) => p.id === sid);
+        if (stillThere) leaveRoom(sid, io);
+      }, 90000);
+      return;
+    }
     leaveRoom(socket.id, io);
   });
 });

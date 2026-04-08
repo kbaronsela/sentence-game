@@ -8,6 +8,23 @@
     reveal: $("screen-reveal"),
   };
 
+  function getClientId() {
+    try {
+      var k = "sentenceGameClientId";
+      var id = sessionStorage.getItem(k);
+      if (!id) {
+        id =
+          typeof crypto !== "undefined" && crypto.randomUUID
+            ? crypto.randomUUID()
+            : "sg-" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        sessionStorage.setItem(k, id);
+      }
+      return id;
+    } catch (e) {
+      return "sg-" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    }
+  }
+
   const socket = io({
     transports: ["polling", "websocket"],
     reconnection: true,
@@ -19,8 +36,13 @@
     socket.emit("room:requestSync");
   }
 
-  socket.on("connect", requestRoomSync);
-  socket.on("reconnect", requestRoomSync);
+  function onConnected() {
+    socket.emit("session:bind", { clientId: getClientId() });
+    requestRoomSync();
+  }
+
+  socket.on("connect", onConnected);
+  socket.on("reconnect", onConnected);
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible" && socket.connected) requestRoomSync();
   });
@@ -118,7 +140,7 @@
 
   $("btn-create").addEventListener("click", () => {
     const name = $("input-name").value.trim() || "שחקן";
-    socket.emit("room:create", { name }, (res) => {
+    socket.emit("room:create", { name, clientId: getClientId() }, (res) => {
       if (res && res.ok) applyRoom(res.room);
       else setError($("enter-error"), (res && res.error) || "שגיאה");
     });
@@ -131,7 +153,7 @@
       setError($("enter-error"), "הזינו קוד חדר");
       return;
     }
-    socket.emit("room:join", { name, code }, (res) => {
+    socket.emit("room:join", { name, code, clientId: getClientId() }, (res) => {
       if (res && res.ok) applyRoom(res.room);
       else setError($("enter-error"), (res && res.error) || "שגיאה");
     });
