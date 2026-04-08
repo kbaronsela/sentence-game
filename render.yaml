@@ -1,0 +1,10 @@
+# Blueprint ל-Render — https://render.com
+# אחרי חיבור המאגר: Render יזהה את הקובץ ויציע פריסה.
+services:
+  - type: web
+    name: sentence-game
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health

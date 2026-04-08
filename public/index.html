@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#1a1528" />
+    <title>משחק המשפטים — סיפור משותף</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="bg-pattern" aria-hidden="true"></div>
+    <main class="shell">
+      <header class="hero">
+        <h1>משחק המשפטים</h1>
+        <p class="tagline">סיפור משותף — כמו בדף המקופל, רק בלי הדף</p>
+      </header>
+
+      <section id="screen-enter" class="card screen">
+        <label class="field">
+          <span>איך קוראים לך?</span>
+          <input type="text" id="input-name" maxlength="24" placeholder="השם שלך" autocomplete="nickname" />
+        </label>
+        <div class="actions stack">
+          <button type="button" class="btn primary" id="btn-create">צור חדר חדש</button>
+          <div class="join-row">
+            <input type="text" id="input-code" class="code-input" maxlength="6" placeholder="קוד חדר" dir="ltr" />
+            <button type="button" class="btn secondary" id="btn-join">הצטרף</button>
+          </div>
+        </div>
+        <p id="enter-error" class="error" role="alert" hidden></p>
+      </section>
+
+      <section id="screen-lobby" class="card screen" hidden>
+        <p class="room-code-line">
+          קוד החדר:
+          <strong id="lobby-code" class="mono" dir="ltr"></strong>
+          <button type="button" class="btn tiny ghost" id="btn-copy-code" title="העתק קוד">העתק</button>
+        </p>
+        <p class="hint">שלחו את הקוד או את הקישור לחברים — כולם נכנסים מאותו כתובת אינטרנט.</p>
+        <h2 class="section-title">שחקנים</h2>
+        <ul id="lobby-players" class="player-list"></ul>
+        <div class="actions" id="lobby-actions">
+          <button type="button" class="btn primary" id="btn-start" disabled>התחל משחק</button>
+        </div>
+        <p id="lobby-hint-host" class="hint subtle" hidden>נדרשים לפחות שני שחקנים כדי להתחיל.</p>
+      </section>
+
+      <section id="screen-play" class="card screen" hidden>
+        <p id="play-turn-info" class="turn-banner"></p>
+        <div id="play-wait" class="wait-panel" hidden>
+          <p>מחכים לתור של <strong id="wait-name"></strong>…</p>
+        </div>
+        <div id="play-write" class="write-panel" hidden>
+          <p id="play-first-hint" class="first-hint" hidden>אתה פותח את הסיפור. כתוב משפט שלם — רק המילה האחרונה תעבור הלאה.</p>
+          <div id="seed-wrap" class="seed-wrap" hidden>
+            <span class="seed-label">המילה שאתה רואה אחרי ״הקיפול״:</span>
+            <p id="play-seed" class="seed-word mono" dir="auto"></p>
+          </div>
+          <label class="field">
+            <span>המשפט שלך</span>
+            <textarea id="input-sentence" rows="4" maxlength="500" placeholder="כתוב משפט אחד…"></textarea>
+          </label>
+          <div class="actions stack">
+            <button type="button" class="btn primary" id="btn-submit-continue">שלח והמשך את הסיפור</button>
+            <button type="button" class="btn danger ghost" id="btn-submit-end">שלח וסיים את הסיפור</button>
+          </div>
+        </div>
+        <p id="play-error" class="error" role="alert" hidden></p>
+      </section>
+
+      <section id="screen-reveal" class="card screen" hidden>
+        <h2 class="section-title">הסיפור המלא</h2>
+        <article id="reveal-story" class="story"></article>
+        <div class="actions">
+          <button type="button" class="btn secondary" id="btn-new-game">משחק חדש (מארח בלבד)</button>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <small>מקומי / רשת — הרצה עם <code>npm start</code> בתיקיית הפרויקט</small>
+      </footer>
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>
