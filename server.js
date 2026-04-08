@@ -9,10 +9,11 @@ const PORT = process.env.PORT || 3456;
 const rooms = new Map();
 
 function randomRoomCode() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let s = "";
-  for (let i = 0; i < 5; i++) s += chars[Math.floor(Math.random() * chars.length)];
-  return s;
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+function normalizeRoomCode(raw) {
+  return String(raw || "").replace(/\D/g, "");
 }
 
 function getLastWord(text) {
@@ -208,10 +209,12 @@ io.on("connection", (socket) => {
   });
 
   socket.on("room:join", (payload, cb) => {
-    const code = String((payload && payload.code) || "")
-      .trim()
-      .toUpperCase();
+    const code = normalizeRoomCode((payload && payload.code) || "");
     const name = (payload && payload.name) || "שחקן";
+    if (code.length !== 6) {
+      if (typeof cb === "function") cb({ ok: false, error: "הקוד הוא 6 ספרות" });
+      return;
+    }
     const clientId =
       (payload && payload.clientId && String(payload.clientId)) || crypto.randomUUID();
     const room = rooms.get(code);

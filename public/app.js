@@ -148,9 +148,9 @@
 
   $("btn-join").addEventListener("click", () => {
     const name = $("input-name").value.trim() || "שחקן";
-    const code = $("input-code").value.trim().toUpperCase();
-    if (!code) {
-      setError($("enter-error"), "הזינו קוד חדר");
+    const code = $("input-code").value.replace(/\D/g, "");
+    if (code.length !== 6) {
+      setError($("enter-error"), "הזינו קוד בן 6 ספרות");
       return;
     }
     socket.emit("room:join", { name, code, clientId: getClientId() }, (res) => {
@@ -213,7 +213,11 @@
 
   const params = new URLSearchParams(window.location.search);
   const preRoom = params.get("room");
-  if (preRoom) $("input-code").value = preRoom.toUpperCase();
+  if (preRoom) $("input-code").value = preRoom.replace(/\D/g, "").slice(0, 6);
+
+  $("input-code").addEventListener("input", function (e) {
+    e.target.value = e.target.value.replace(/\D/g, "").slice(0, 6);
+  });
 
   showScreen("enter");
 })();

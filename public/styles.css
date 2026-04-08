@@ -237,8 +237,8 @@ textarea:focus {
 
 .join-row .code-input {
   flex: 1;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.12em;
+  font-variant-numeric: tabular-nums;
   background: var(--sky-soft);
   border-color: rgba(14, 165, 233, 0.25);
 }

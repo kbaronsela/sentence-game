@@ -38,7 +38,7 @@
 
         <h2 class="enter-step-title">שחקנים אחרים — נכנסים לחדר קיים</h2>
         <p class="hint enter-hint">
-          הזינו כאן את <strong>קוד החדר</strong> שקיבלתם מהמארח (אותיות ומספרים, למשל <span class="mono" dir="ltr">X7K2M</span>), ואז לוחצים ״הצטרף״.
+          הזינו כאן את <strong>קוד החדר</strong> — <strong>6 ספרות</strong> שקיבלתם מהמארח (למשל <span class="mono" dir="ltr">482913</span>), ואז לוחצים ״הצטרף״.
         </p>
         <div class="join-row">
           <input
@@ -46,10 +46,12 @@
             id="input-code"
             class="code-input"
             maxlength="6"
-            placeholder="הקוד שהמארח שלח"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            placeholder="6 ספרות"
             dir="ltr"
             autocomplete="off"
-            aria-label="קוד החדר"
+            aria-label="קוד החדר — 6 ספרות"
           />
           <button type="button" class="btn secondary" id="btn-join">הצטרף לחדר</button>
         </div>
