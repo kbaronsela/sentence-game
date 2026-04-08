@@ -225,7 +225,7 @@ function createRpsRoom(hostSocketId, hostName, clientId) {
     hostId: hostSocketId,
     mode: "pvp",
     phase: "lobby",
-    players: [{ id: hostSocketId, name: hostName, clientId, choice: null }],
+    players: [{ id: hostSocketId, name: hostName, clientId, choice: null, wins: 0 }],
     lastResult: null,
   };
   rpsRooms.set(code, room);
@@ -246,8 +246,8 @@ function createRpsSoloRoom(hostSocketId, hostName, clientId) {
     mode: "bot",
     phase: "lobby",
     players: [
-      { id: hostSocketId, name: hostName, clientId, choice: null },
-      { id: botId, name: "בוט", clientId: "rps-bot", isBot: true, choice: null },
+      { id: hostSocketId, name: hostName, clientId, choice: null, wins: 0 },
+      { id: botId, name: "בוט", clientId: "rps-bot", isBot: true, choice: null, wins: 0 },
     ],
     lastResult: null,
   };
@@ -285,8 +285,10 @@ function resolveRpsRound(room) {
     tie = true;
   } else if (w === "a") {
     winnerName = p0.name;
+    p0.wins = (p0.wins || 0) + 1;
   } else {
     winnerName = p1.name;
+    p1.wins = (p1.wins || 0) + 1;
   }
   room.phase = "result";
   room.lastResult = {
@@ -297,6 +299,11 @@ function resolveRpsRound(room) {
       { name: p0.name, choice: c0, isBot: !!p0.isBot },
       { name: p1.name, choice: c1, isBot: !!p1.isBot },
     ],
+    scores: room.players.map((p) => ({
+      name: p.name,
+      wins: p.wins || 0,
+      isBot: !!p.isBot,
+    })),
   };
 }
 
@@ -712,7 +719,7 @@ io.on("connection", (socket) => {
       if (typeof cb === "function") cb({ ok: false, error: "החדר מלא" });
       return;
     }
-    room.players.push({ id: socket.id, name: nv.name, clientId, choice: null });
+    room.players.push({ id: socket.id, name: nv.name, clientId, choice: null, wins: 0 });
     socket.join(rpsRoomName(code));
     socket.data.rpsCode = code;
     socket.data.rpsClientId = clientId;

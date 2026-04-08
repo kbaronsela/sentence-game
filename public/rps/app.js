@@ -1,6 +1,10 @@
 (function () {
   const $ = (id) => document.getElementById(id);
 
+  function winWord(n) {
+    return n === 1 ? "ניצחון" : "ניצחונות";
+  }
+
   const CHOICE_META = {
     rock: { emoji: "✊", label: "אבן" },
     paper: { emoji: "✋", label: "נייר" },
@@ -176,6 +180,23 @@
         line.querySelector(".who").textContent = pick.name + (pick.isBot ? " (בוט)" : "");
         row.appendChild(line);
       });
+
+      const scoresEl = $("result-scores");
+      scoresEl.innerHTML = "";
+      const scores = r.scores;
+      if (scores && scores.length) {
+        const title = document.createElement("p");
+        title.className = "result-scores-title";
+        title.textContent = "ניצחונות בחדר";
+        scoresEl.appendChild(title);
+        scores.forEach((s) => {
+          const lineEl = document.createElement("div");
+          lineEl.className = "result-score-line";
+          const label = s.name + (s.isBot ? " (בוט)" : "");
+          lineEl.textContent = label + ": " + s.wins + " " + winWord(s.wins);
+          scoresEl.appendChild(lineEl);
+        });
+      }
       return;
     }
 
