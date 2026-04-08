@@ -251,6 +251,14 @@ input:focus {
   color: var(--muted);
 }
 
+.btn-copy-link {
+  padding: 0.45rem 0.95rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
+
 .join-row {
   display: flex;
   gap: 0.5rem;

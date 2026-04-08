@@ -565,10 +565,6 @@ io.on("connection", (socket) => {
       if (typeof cb === "function") cb({ ok: false, error: "לא בחדר" });
       return;
     }
-    if (room.phase !== "lobby") {
-      if (typeof cb === "function") cb({ ok: false, error: "לא ניתן לצאת מהחדר במהלך המשחק" });
-      return;
-    }
     cancelPendingLeave(socket.id);
     leaveRoom(socket.id, io);
     socket.leave(code);
