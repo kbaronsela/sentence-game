@@ -8,6 +8,17 @@ const PORT = process.env.PORT || 3456;
 
 const rooms = new Map();
 
+/** טיימר הסרה אחרי ניתוק — מבוטל ב-session:bind כשחוזרים עם אותו clientId (רענון דף) */
+const pendingLeave = new Map();
+
+function cancelPendingLeave(socketId) {
+  const t = pendingLeave.get(socketId);
+  if (t) {
+    clearTimeout(t);
+    pendingLeave.delete(socketId);
+  }
+}
+
 function randomRoomCode() {
   return String(Math.floor(100000 + Math.random() * 900000));
 }
@@ -260,6 +271,8 @@ io.on("connection", (socket) => {
       const p = room.players.find((x) => x.clientId === clientId);
       if (!p) continue;
 
+      const oldId = p.id;
+      cancelPendingLeave(oldId);
       p.id = socket.id;
       socket.data.roomCode = room.code;
       socket.data.clientId = clientId;
@@ -346,6 +359,7 @@ io.on("connection", (socket) => {
       if (typeof cb === "function") cb({ ok: false, error: "לא ניתן לצאת מהחדר במהלך המשחק" });
       return;
     }
+    cancelPendingLeave(socket.id);
     leaveRoom(socket.id, io);
     socket.leave(code);
     delete socket.data.roomCode;
@@ -436,17 +450,19 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     const code = socket.data.roomCode;
     const room = code && rooms.get(code);
-    if (room && room.phase === "playing") {
-      const sid = socket.id;
-      setTimeout(() => {
-        const r = rooms.get(code);
-        if (!r) return;
-        const stillThere = r.players.some((p) => p.id === sid);
-        if (stillThere) leaveRoom(sid, io);
-      }, 90000);
-      return;
-    }
-    leaveRoom(socket.id, io);
+    const sid = socket.id;
+    if (!room) return;
+
+    const delayMs = room.phase === "lobby" ? 120000 : 90000;
+    cancelPendingLeave(sid);
+    const tid = setTimeout(() => {
+      pendingLeave.delete(sid);
+      const r = code && rooms.get(code);
+      if (!r) return;
+      if (!r.players.some((p) => p.id === sid)) return;
+      leaveRoom(sid, io);
+    }, delayMs);
+    pendingLeave.set(sid, tid);
   });
 });
 
