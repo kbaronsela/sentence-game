@@ -191,6 +191,193 @@ function serializeRoom(room, forSocketId) {
 }
 
 /** שידור לכל מי שבחדר ה-socket (מסתמך על join ל-room.code), עם גיבוי ל-io.to */
+const rpsRooms = new Map();
+const pendingRpsLeave = new Map();
+
+function cancelPendingRpsLeave(socketId) {
+  const t = pendingRpsLeave.get(socketId);
+  if (t) {
+    clearTimeout(t);
+    pendingRpsLeave.delete(socketId);
+  }
+}
+
+function rpsRoomName(code) {
+  return `rps:${code}`;
+}
+
+function rpsWinner(a, b) {
+  if (a === b) return "tie";
+  const beats = { rock: "scissors", scissors: "paper", paper: "rock" };
+  if (beats[a] === b) return "a";
+  return "b";
+}
+
+function createRpsRoom(hostSocketId, hostName, clientId) {
+  let code;
+  do {
+    code = randomRoomCode();
+  } while (rpsRooms.has(code));
+
+  const room = {
+    code,
+    solo: false,
+    hostId: hostSocketId,
+    mode: "pvp",
+    phase: "lobby",
+    players: [{ id: hostSocketId, name: hostName, clientId, choice: null }],
+    lastResult: null,
+  };
+  rpsRooms.set(code, room);
+  return room;
+}
+
+function createRpsSoloRoom(hostSocketId, hostName, clientId) {
+  let code;
+  do {
+    code = randomRoomCode();
+  } while (rpsRooms.has(code));
+
+  const botId = `rpsbot:${code}`;
+  const room = {
+    code,
+    solo: true,
+    hostId: hostSocketId,
+    mode: "bot",
+    phase: "lobby",
+    players: [
+      { id: hostSocketId, name: hostName, clientId, choice: null },
+      { id: botId, name: "בוט", clientId: "rps-bot", isBot: true, choice: null },
+    ],
+    lastResult: null,
+  };
+  rpsRooms.set(code, room);
+  return room;
+}
+
+function leaveRpsRoom(socketId, io) {
+  for (const [code, room] of rpsRooms.entries()) {
+    const idx = room.players.findIndex((p) => p.id === socketId);
+    if (idx === -1) continue;
+
+    room.players.splice(idx, 1);
+    if (room.players.length === 0 || room.solo) {
+      rpsRooms.delete(code);
+      return;
+    }
+    if (room.hostId === socketId && room.players[0]) {
+      room.hostId = room.players[0].id;
+    }
+    broadcastRps(io, room);
+    return;
+  }
+}
+
+function resolveRpsRound(room) {
+  const [p0, p1] = room.players;
+  const c0 = p0.choice;
+  const c1 = p1.choice;
+  if (!c0 || !c1) return;
+  const w = rpsWinner(c0, c1);
+  let winnerName = null;
+  let tie = false;
+  if (w === "tie") {
+    tie = true;
+  } else if (w === "a") {
+    winnerName = p0.name;
+  } else {
+    winnerName = p1.name;
+  }
+  room.phase = "result";
+  room.lastResult = {
+    tie,
+    winnerName,
+    line: tie ? "תיקו!" : `${winnerName} מנצח/ת!`,
+    picks: [
+      { name: p0.name, choice: c0, isBot: !!p0.isBot },
+      { name: p1.name, choice: c1, isBot: !!p1.isBot },
+    ],
+  };
+}
+
+function serializeRpsRoom(room, forSocketId) {
+  const me = room.players.find((p) => p.id === forSocketId);
+  const isHost = room.hostId === forSocketId;
+  const opponent = room.players.find((p) => p.id !== forSocketId);
+
+  if (room.phase === "result" && room.lastResult) {
+    return {
+      code: room.code,
+      phase: room.phase,
+      mode: room.mode,
+      solo: !!room.solo,
+      players: room.players.map((p) => ({
+        name: p.name,
+        isYou: p.id === forSocketId,
+        isBot: !!p.isBot,
+      })),
+      isHost,
+      myChoice: null,
+      opponentPicked: true,
+      waitingForOpponent: false,
+      rivalReady: false,
+      result: room.lastResult,
+    };
+  }
+
+  const myChoice = me ? me.choice : null;
+  const oppPicked = !!(opponent && opponent.choice);
+  const waitingForOpponent =
+    room.phase === "pick" && me && me.choice && opponent && !opponent.choice && room.mode === "pvp";
+  const rivalReady =
+    room.phase === "pick" && me && !me.choice && opponent && opponent.choice && room.mode === "pvp";
+
+  return {
+    code: room.code,
+    phase: room.phase,
+    mode: room.mode,
+    solo: !!room.solo,
+    players: room.players.map((p) => ({
+      name: p.name,
+      isYou: p.id === forSocketId,
+      isBot: !!p.isBot,
+    })),
+    isHost,
+    myChoice: room.phase === "pick" ? myChoice : null,
+    opponentPicked: room.phase === "pick" ? oppPicked : false,
+    waitingForOpponent,
+    rivalReady,
+    result: null,
+  };
+}
+
+function broadcastRps(io, room) {
+  const rn = rpsRoomName(room.code);
+  const allowed = new Set(room.players.filter((p) => !p.isBot).map((p) => p.id));
+
+  io.in(rn)
+    .fetchSockets()
+    .then((socks) => {
+      const got = new Set();
+      for (const s of socks) {
+        if (!allowed.has(s.id)) continue;
+        s.emit("rps:update", serializeRpsRoom(room, s.id));
+        got.add(s.id);
+      }
+      for (const p of room.players) {
+        if (got.has(p.id)) continue;
+        if (p.isBot) continue;
+        io.to(p.id).emit("rps:update", serializeRpsRoom(room, p.id));
+      }
+    })
+    .catch(() => {
+      room.players.forEach((p) => {
+        if (p.isBot) return;
+        io.to(p.id).emit("rps:update", serializeRpsRoom(room, p.id));
+      });
+    });
+}
+
 function broadcastRoom(io, room) {
   const code = room.code;
   const allowed = new Set(room.players.map((p) => p.id));
@@ -226,6 +413,8 @@ function httpHandler(req, res) {
     return;
   }
   if (urlPath === "/") urlPath = "/index.html";
+  else if (urlPath.endsWith("/")) urlPath = urlPath + "index.html";
+  else if (!path.extname(urlPath)) urlPath = urlPath + "/index.html";
   const filePath = path.join(__dirname, "public", path.normalize(urlPath).replace(/^(\.\.(\/|\\|$))+/, ""));
   if (!filePath.startsWith(path.join(__dirname, "public"))) {
     res.writeHead(403);
@@ -278,6 +467,20 @@ io.on("connection", (socket) => {
       socket.data.clientId = clientId;
       socket.join(room.code);
       broadcastRoom(io, room);
+      return;
+    }
+
+    for (const room of rpsRooms.values()) {
+      const p = room.players.find((x) => x.clientId === clientId && !x.isBot);
+      if (!p) continue;
+
+      const oldId = p.id;
+      cancelPendingRpsLeave(oldId);
+      p.id = socket.id;
+      socket.data.rpsCode = room.code;
+      socket.data.rpsClientId = clientId;
+      socket.join(rpsRoomName(room.code));
+      broadcastRps(io, room);
       return;
     }
   });
@@ -447,22 +650,213 @@ io.on("connection", (socket) => {
     if (typeof cb === "function") cb({ ok: true });
   });
 
-  socket.on("disconnect", () => {
-    const code = socket.data.roomCode;
-    const room = code && rooms.get(code);
-    const sid = socket.id;
-    if (!room) return;
+  socket.on("rps:create", (payload, cb) => {
+    const nv = normalizePlayerName(payload && payload.name);
+    if (!nv.ok) {
+      if (typeof cb === "function") cb({ ok: false, error: nv.error });
+      return;
+    }
+    const clientId =
+      (payload && payload.clientId && String(payload.clientId)) || crypto.randomUUID();
+    const room = createRpsRoom(socket.id, nv.name, clientId);
+    socket.join(rpsRoomName(room.code));
+    socket.data.rpsCode = room.code;
+    socket.data.rpsClientId = clientId;
+    if (typeof cb === "function") cb({ ok: true, room: serializeRpsRoom(room, socket.id) });
+    else socket.emit("rps:update", serializeRpsRoom(room, socket.id));
+  });
 
-    const delayMs = room.phase === "lobby" ? 120000 : 90000;
-    cancelPendingLeave(sid);
-    const tid = setTimeout(() => {
-      pendingLeave.delete(sid);
-      const r = code && rooms.get(code);
-      if (!r) return;
-      if (!r.players.some((p) => p.id === sid)) return;
-      leaveRoom(sid, io);
-    }, delayMs);
-    pendingLeave.set(sid, tid);
+  socket.on("rps:createSolo", (payload, cb) => {
+    const nv = normalizePlayerName(payload && payload.name);
+    if (!nv.ok) {
+      if (typeof cb === "function") cb({ ok: false, error: nv.error });
+      return;
+    }
+    const clientId =
+      (payload && payload.clientId && String(payload.clientId)) || crypto.randomUUID();
+    const room = createRpsSoloRoom(socket.id, nv.name, clientId);
+    socket.join(rpsRoomName(room.code));
+    socket.data.rpsCode = room.code;
+    socket.data.rpsClientId = clientId;
+    if (typeof cb === "function") cb({ ok: true, room: serializeRpsRoom(room, socket.id) });
+    else socket.emit("rps:update", serializeRpsRoom(room, socket.id));
+  });
+
+  socket.on("rps:join", (payload, cb) => {
+    const code = normalizeRoomCode((payload && payload.code) || "");
+    const nv = normalizePlayerName(payload && payload.name);
+    if (!nv.ok) {
+      if (typeof cb === "function") cb({ ok: false, error: nv.error });
+      return;
+    }
+    if (code.length !== 6) {
+      if (typeof cb === "function") cb({ ok: false, error: "הקוד הוא 6 ספרות" });
+      return;
+    }
+    const clientId =
+      (payload && payload.clientId && String(payload.clientId)) || crypto.randomUUID();
+    const room = rpsRooms.get(code);
+    if (!room) {
+      if (typeof cb === "function") cb({ ok: false, error: "החדר לא נמצא" });
+      return;
+    }
+    if (room.phase !== "lobby") {
+      if (typeof cb === "function") cb({ ok: false, error: "המשחק כבר התחיל" });
+      return;
+    }
+    if (room.solo) {
+      if (typeof cb === "function") cb({ ok: false, error: "לא ניתן להצטרף — משחק מול בוט" });
+      return;
+    }
+    if (room.players.length >= 2) {
+      if (typeof cb === "function") cb({ ok: false, error: "החדר מלא" });
+      return;
+    }
+    room.players.push({ id: socket.id, name: nv.name, clientId, choice: null });
+    socket.join(rpsRoomName(code));
+    socket.data.rpsCode = code;
+    socket.data.rpsClientId = clientId;
+    if (typeof cb === "function") cb({ ok: true, room: serializeRpsRoom(room, socket.id) });
+    broadcastRps(io, room);
+  });
+
+  socket.on("rps:leave", (payload, cb) => {
+    const code = socket.data.rpsCode;
+    const room = code && rpsRooms.get(code);
+    if (!room) {
+      if (typeof cb === "function") cb({ ok: false, error: "לא בחדר" });
+      return;
+    }
+    cancelPendingRpsLeave(socket.id);
+    leaveRpsRoom(socket.id, io);
+    socket.leave(rpsRoomName(code));
+    delete socket.data.rpsCode;
+    delete socket.data.rpsClientId;
+    socket.emit("rps:update", null);
+    if (typeof cb === "function") cb({ ok: true });
+  });
+
+  socket.on("rps:requestSync", () => {
+    const code = socket.data.rpsCode;
+    const room = code && rpsRooms.get(code);
+    if (!room || !room.players.some((p) => p.id === socket.id && !p.isBot)) return;
+    socket.emit("rps:update", serializeRpsRoom(room, socket.id));
+  });
+
+  socket.on("rps:start", (payload, cb) => {
+    const code = socket.data.rpsCode;
+    const room = code && rpsRooms.get(code);
+    if (!room || room.hostId !== socket.id) {
+      if (typeof cb === "function") cb({ ok: false, error: "רק המארח יכול להתחיל" });
+      return;
+    }
+    if (room.players.length < 2) {
+      if (typeof cb === "function") cb({ ok: false, error: "נדרשים שני שחקנים" });
+      return;
+    }
+    room.phase = "pick";
+    room.players.forEach((p) => {
+      p.choice = null;
+    });
+    room.lastResult = null;
+    broadcastRps(io, room);
+    if (typeof cb === "function") cb({ ok: true });
+  });
+
+  socket.on("rps:pick", (payload, cb) => {
+    const code = socket.data.rpsCode;
+    const room = code && rpsRooms.get(code);
+    if (!room || room.phase !== "pick") {
+      if (typeof cb === "function") cb({ ok: false, error: "לא בשלב בחירה" });
+      return;
+    }
+    const choice = payload && payload.choice;
+    if (!["rock", "paper", "scissors"].includes(choice)) {
+      if (typeof cb === "function") cb({ ok: false, error: "בחירה לא חוקית" });
+      return;
+    }
+    const me = room.players.find((p) => p.id === socket.id);
+    if (!me || me.isBot) {
+      if (typeof cb === "function") cb({ ok: false, error: "לא התור שלך" });
+      return;
+    }
+    if (me.choice) {
+      if (typeof cb === "function") cb({ ok: false, error: "כבר בחרת" });
+      return;
+    }
+    me.choice = choice;
+
+    if (room.mode === "bot") {
+      const bot = room.players.find((p) => p.isBot);
+      const opts = ["rock", "paper", "scissors"];
+      bot.choice = opts[Math.floor(Math.random() * opts.length)];
+      resolveRpsRound(room);
+      broadcastRps(io, room);
+      if (typeof cb === "function") cb({ ok: true });
+      return;
+    }
+
+    const allReady = room.players.every((p) => p.choice);
+    if (allReady) {
+      resolveRpsRound(room);
+    }
+    broadcastRps(io, room);
+    if (typeof cb === "function") cb({ ok: true });
+  });
+
+  socket.on("rps:again", (payload, cb) => {
+    const code = socket.data.rpsCode;
+    const room = code && rpsRooms.get(code);
+    if (!room || room.phase !== "result") {
+      if (typeof cb === "function") cb({ ok: false, error: "לא אפשרי" });
+      return;
+    }
+    room.phase = "pick";
+    room.players.forEach((p) => {
+      p.choice = null;
+    });
+    room.lastResult = null;
+    broadcastRps(io, room);
+    if (typeof cb === "function") cb({ ok: true });
+  });
+
+  socket.on("disconnect", () => {
+    const sid = socket.id;
+    const code = socket.data.roomCode;
+    const rpsCode = socket.data.rpsCode;
+
+    if (code) {
+      const room = rooms.get(code);
+      if (room) {
+        const delayMs = room.phase === "lobby" ? 120000 : 90000;
+        cancelPendingLeave(sid);
+        const tid = setTimeout(() => {
+          pendingLeave.delete(sid);
+          const r = rooms.get(code);
+          if (!r) return;
+          if (!r.players.some((p) => p.id === sid)) return;
+          leaveRoom(sid, io);
+        }, delayMs);
+        pendingLeave.set(sid, tid);
+      }
+      return;
+    }
+
+    if (rpsCode) {
+      const room = rpsRooms.get(rpsCode);
+      if (room) {
+        const delayMs = room.phase === "lobby" ? 120000 : 90000;
+        cancelPendingRpsLeave(sid);
+        const tid = setTimeout(() => {
+          pendingRpsLeave.delete(sid);
+          const r = rpsRooms.get(rpsCode);
+          if (!r) return;
+          if (!r.players.some((p) => p.id === sid)) return;
+          leaveRpsRoom(sid, io);
+        }, delayMs);
+        pendingRpsLeave.set(sid, tid);
+      }
+    }
   });
 });
 

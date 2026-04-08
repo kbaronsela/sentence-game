@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#fef6f0" />
+    <title>אבן נייר מספריים</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="rps-bg" aria-hidden="true"></div>
+    <main class="shell">
+      <p class="sub-nav"><a href="/">← משחקי ילדות</a></p>
+      <header class="hero">
+        <h1>אבן&nbsp;·&nbsp;נייר&nbsp;·&nbsp;מספריים</h1>
+        <p class="tagline">אבן מנצחת מספריים, מספריים מנצחות נייר, נייר מנצח אבן</p>
+      </header>
+
+      <section id="screen-enter" class="card screen">
+        <label class="field">
+          <span>איך קוראים לך? <span class="req-mark" aria-hidden="true">*</span></span>
+          <input type="text" id="input-name" maxlength="24" placeholder="השם שלך" required />
+        </label>
+        <h2 class="enter-step-title">שחק מול אדם אחר</h2>
+        <p class="hint">צרו חדר והעבירו את הקוד או הקישור ליריבה.</p>
+        <div class="actions stack">
+          <button type="button" class="btn primary" id="btn-create">צור חדר</button>
+        </div>
+        <h2 class="enter-step-title">או הצטרפות לחדר</h2>
+        <div class="join-row">
+          <input
+            type="text"
+            id="input-code"
+            class="code-input"
+            maxlength="6"
+            inputmode="numeric"
+            placeholder="6 ספרות"
+            dir="ltr"
+            autocomplete="off"
+          />
+          <button type="button" class="btn secondary" id="btn-join">הצטרף</button>
+        </div>
+        <h2 class="enter-step-title">מול בוט</h2>
+        <p class="hint">משחק מהיר מול המחשב.</p>
+        <div class="actions stack">
+          <button type="button" class="btn bot" id="btn-solo">שחק מול בוט</button>
+        </div>
+        <p id="enter-error" class="error" role="alert" hidden></p>
+      </section>
+
+      <section id="screen-lobby" class="card screen" hidden>
+        <div id="lobby-code-row">
+          <p>קוד החדר: <strong id="lobby-code" class="mono" dir="ltr"></strong>
+            <button type="button" class="btn secondary" id="btn-copy" style="margin-inline-start: 0.5rem; padding: 0.35rem 0.65rem; font-size: 0.85rem">העתק קישור</button>
+          </p>
+          <p class="hint" id="lobby-hint-pvp">שלחו את הקוד או את הקישור ליריבה.</p>
+        </div>
+        <p class="hint" id="lobby-hint-solo" hidden>מול הבוט — לחצו ״התחל״ כשמוכנים.</p>
+        <h2 class="section-title">שחקנים</h2>
+        <ul id="lobby-players" class="player-list"></ul>
+        <div class="actions stack">
+          <button type="button" class="btn secondary" id="btn-lobby-back">חזרה</button>
+          <button type="button" class="btn primary" id="btn-start" disabled>התחל</button>
+        </div>
+        <p id="lobby-host-hint" class="hint subtle" hidden>נדרשים שני שחקנים (או מצב בוט עם שני ״שחקנים״).</p>
+      </section>
+
+      <section id="screen-pick" class="card screen" hidden>
+        <p class="pick-title">מה בוחרים?</p>
+        <p id="pick-status" class="status-line"></p>
+        <p id="pick-error" class="error" role="alert" hidden></p>
+        <div class="rps-choices" id="rps-choices"></div>
+      </section>
+
+      <section id="screen-result" class="card screen" hidden>
+        <p id="result-banner" class="result-banner"></p>
+        <div id="picks-display" class="picks-row"></div>
+        <div class="actions stack">
+          <button type="button" class="btn primary" id="btn-again">סיבוב נוסף</button>
+          <button type="button" class="btn secondary" id="btn-home">חזרה לעמוד הבית</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

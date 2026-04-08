@@ -4,124 +4,35 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#fef6f0" />
-    <title>משחק המשפטים — סיפור משותף</title>
+    <title>משחקי ילדות</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/home.css" />
   </head>
   <body>
-    <div class="bg-pattern" aria-hidden="true"></div>
-    <main class="shell">
-      <header class="hero">
-        <h1>משחק המשפטים</h1>
-        <p class="tagline">סיפור משותף — כמו בדף המקופל, רק בלי הדף</p>
+    <div class="home-bg" aria-hidden="true"></div>
+    <main class="home-shell">
+      <header class="home-hero">
+        <h1>משחקי ילדות</h1>
+        <p class="home-tagline">בחרו משחק והתחילו — מהמחשב או מהטלפון</p>
       </header>
 
-      <section id="screen-enter" class="card screen">
-        <p class="enter-intro">
-          כל שחקן נכנס מהמכשיר שלו לאותה כתובת (למשל מהקישור ששלחתם). קודם בוחרים שם, ואז או פותחים חדר או מצטרפים לחדר של מישהו אחר.
-        </p>
-        <label class="field">
-          <span>איך קוראים לך? <span class="req-mark" aria-hidden="true">*</span></span>
-          <input
-            type="text"
-            id="input-name"
-            maxlength="24"
-            placeholder="השם שלך"
-            autocomplete="nickname"
-            required
-            aria-required="true"
-          />
-        </label>
-
-        <h2 class="enter-step-title">מארח/ת — פותחים משחק</h2>
-        <p class="hint enter-hint">יופיע קוד חדר; תעבירו אותו (או את הקישור) לשאר השחקנים.</p>
-        <div class="actions stack">
-          <button type="button" class="btn primary" id="btn-create">צור חדר חדש</button>
-          <button type="button" class="btn bot" id="btn-solo">שחק מול בוט</button>
-        </div>
-        <p class="hint enter-hint bot-hint">משחק לבד — הבוט ימשיך את הסיפור לפי המילה האחרונה שלך.</p>
-
-        <h2 class="enter-step-title">שחקנים אחרים — נכנסים לחדר קיים</h2>
-        <p class="hint enter-hint">
-          הזינו כאן את <strong>קוד החדר</strong> — <strong>6 ספרות</strong> שקיבלתם מהמארח (למשל <span class="mono" dir="ltr">482913</span>), ואז לוחצים ״הצטרף״.
-        </p>
-        <div class="join-row">
-          <input
-            type="text"
-            id="input-code"
-            class="code-input"
-            maxlength="6"
-            inputmode="numeric"
-            pattern="[0-9]*"
-            placeholder="6 ספרות"
-            dir="ltr"
-            autocomplete="off"
-            aria-label="קוד החדר — 6 ספרות"
-          />
-          <button type="button" class="btn secondary" id="btn-join">הצטרף לחדר</button>
-        </div>
-
-        <p id="enter-error" class="error" role="alert" hidden></p>
-      </section>
-
-      <section id="screen-lobby" class="card screen" hidden>
-        <div id="lobby-code-row">
-          <p class="room-code-line">
-            קוד החדר:
-            <strong id="lobby-code" class="mono" dir="ltr"></strong>
-            <button type="button" class="btn tiny ghost" id="btn-copy-code" title="העתקת קישור לחדר">העתק קישור</button>
-          </p>
-          <p id="lobby-hint-multi" class="hint">שלחו את הקוד או את הקישור לחברים — כולם נכנסים מאותו כתובת אינטרנט.</p>
-        </div>
-        <p id="lobby-hint-solo" class="hint" hidden>משחק מול הבוט — לחצו ״התחל משחק״ כשמוכנים.</p>
-        <h2 class="section-title">שחקנים</h2>
-        <ul id="lobby-players" class="player-list"></ul>
-        <div class="actions stack" id="lobby-actions">
-          <button type="button" class="btn secondary" id="btn-lobby-back">חזרה למסך הכניסה</button>
-          <button type="button" class="btn primary" id="btn-start" disabled>התחל משחק</button>
-        </div>
-        <p id="lobby-hint-host" class="hint subtle" hidden>נדרשים לפחות שני שחקנים כדי להתחיל.</p>
-      </section>
-
-      <section id="screen-play" class="card screen" hidden>
-        <p id="play-turn-info" class="turn-banner"></p>
-        <div id="play-wait" class="wait-panel" hidden>
-          <p>מחכים לתור של <strong id="wait-name"></strong>…</p>
-        </div>
-        <div id="play-write" class="write-panel" hidden>
-          <p id="play-first-hint" class="first-hint" hidden>אתה פותח את הסיפור. כתוב משפט שלם — רק המילה האחרונה תעבור הלאה.</p>
-          <div id="seed-wrap" class="seed-wrap" hidden>
-            <span class="seed-label">המילה שאתה רואה אחרי ״הקיפול״:</span>
-            <p id="play-seed" class="seed-word mono" dir="auto"></p>
-          </div>
-          <label class="field">
-            <span>המשפט שלך</span>
-            <textarea id="input-sentence" rows="4" maxlength="500" placeholder="כתוב משפט אחד…"></textarea>
-          </label>
-          <div class="actions stack">
-            <button type="button" class="btn primary" id="btn-submit-continue">שלח והמשך את הסיפור</button>
-            <button type="button" class="btn danger ghost" id="btn-submit-end">שלח וסיים את הסיפור</button>
-          </div>
-        </div>
-        <p id="play-error" class="error" role="alert" hidden></p>
-      </section>
-
-      <section id="screen-reveal" class="card screen" hidden>
-        <h2 class="section-title">הסיפור המלא</h2>
-        <article id="reveal-story" class="story"></article>
-        <div class="actions">
-          <button type="button" class="btn secondary" id="btn-new-game">משחק חדש (מארח בלבד)</button>
-        </div>
-      </section>
-
+      <nav class="game-grid" aria-label="בחירת משחק">
+        <a class="game-card" href="/sentence-game/">
+          <span class="game-card-icon" aria-hidden="true">📜</span>
+          <h2>סיפור במשפטים</h2>
+          <p>משחק משותף של סיפור — כל אחד רואה רק את המילה האחרונה מהתור הקודם.</p>
+        </a>
+        <a class="game-card" href="/rps/">
+          <span class="game-card-icon" aria-hidden="true">📌</span>
+          <h2>אבן נייר ומספריים</h2>
+          <p>מול חבר או מול בוט — בוחרים אבן, נייר או מספריים ומגלים מי מנצח.</p>
+        </a>
+      </nav>
     </main>
-
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="/app.js"></script>
   </body>
 </html>

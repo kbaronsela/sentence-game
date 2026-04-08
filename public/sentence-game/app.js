@@ -277,7 +277,7 @@
 
   $("btn-copy-code").addEventListener("click", async () => {
     const code = $("lobby-code").textContent;
-    const url = `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(code)}`;
+    const url = `${window.location.origin}/sentence-game/?room=${encodeURIComponent(code)}`;
     try {
       await navigator.clipboard.writeText(url);
       $("btn-copy-code").textContent = "הועתק!";
