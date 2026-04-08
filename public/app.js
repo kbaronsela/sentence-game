@@ -196,14 +196,14 @@
       await navigator.clipboard.writeText(url);
       $("btn-copy-code").textContent = "הועתק!";
       setTimeout(() => {
-        $("btn-copy-code").textContent = "העתק";
+        $("btn-copy-code").textContent = "העתק קישור";
       }, 2000);
     } catch {
       try {
         await navigator.clipboard.writeText(code);
         $("btn-copy-code").textContent = "הועתק!";
         setTimeout(() => {
-          $("btn-copy-code").textContent = "העתק";
+          $("btn-copy-code").textContent = "העתק קישור";
         }, 2000);
       } catch {
         prompt("העתיקו את הקישור:", url);
