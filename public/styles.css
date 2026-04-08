@@ -67,6 +67,28 @@ body {
   font-size: 0.95rem;
 }
 
+.enter-intro {
+  font-size: 0.92rem;
+  color: var(--muted);
+  margin: 0 0 1rem;
+  line-height: 1.55;
+}
+
+.enter-step-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 1.15rem 0 0.35rem;
+  color: var(--text);
+}
+
+.enter-step-title:first-of-type {
+  margin-top: 0.25rem;
+}
+
+.enter-hint {
+  margin: 0 0 0.75rem;
+}
+
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -181,6 +203,7 @@ textarea:focus {
   gap: 0.5rem;
   align-items: stretch;
   width: 100%;
+  margin-top: 0.25rem;
 }
 
 .join-row .code-input {

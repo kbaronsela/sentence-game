@@ -22,17 +22,38 @@
       </header>
 
       <section id="screen-enter" class="card screen">
+        <p class="enter-intro">
+          כל שחקן נכנס מהמכשיר שלו לאותה כתובת (למשל מהקישור ששלחתם). קודם בוחרים שם, ואז או פותחים חדר או מצטרפים לחדר של מישהו אחר.
+        </p>
         <label class="field">
           <span>איך קוראים לך?</span>
           <input type="text" id="input-name" maxlength="24" placeholder="השם שלך" autocomplete="nickname" />
         </label>
+
+        <h2 class="enter-step-title">מארח/ת — פותחים משחק</h2>
+        <p class="hint enter-hint">יופיע קוד חדר; תעבירו אותו (או את הקישור) לשאר השחקנים.</p>
         <div class="actions stack">
           <button type="button" class="btn primary" id="btn-create">צור חדר חדש</button>
-          <div class="join-row">
-            <input type="text" id="input-code" class="code-input" maxlength="6" placeholder="קוד חדר" dir="ltr" />
-            <button type="button" class="btn secondary" id="btn-join">הצטרף</button>
-          </div>
         </div>
+
+        <h2 class="enter-step-title">שחקנים אחרים — נכנסים לחדר קיים</h2>
+        <p class="hint enter-hint">
+          הזינו כאן את <strong>קוד החדר</strong> שקיבלתם מהמארח (אותיות ומספרים, למשל <span class="mono" dir="ltr">X7K2M</span>), ואז לוחצים ״הצטרף״.
+        </p>
+        <div class="join-row">
+          <input
+            type="text"
+            id="input-code"
+            class="code-input"
+            maxlength="6"
+            placeholder="הקוד שהמארח שלח"
+            dir="ltr"
+            autocomplete="off"
+            aria-label="קוד החדר"
+          />
+          <button type="button" class="btn secondary" id="btn-join">הצטרף לחדר</button>
+        </div>
+
         <p id="enter-error" class="error" role="alert" hidden></p>
       </section>
 
