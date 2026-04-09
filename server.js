@@ -545,7 +545,7 @@ function xoCheckDraw(board) {
   return board.every((c) => c !== null && c !== undefined);
 }
 
-/** Minimax: הבוט (O) ממקסם, השחקן (X) ממזער. עומק משמש לשבירת תיקו — ניצחון מהיר עדיף. */
+/** Minimax: הבוט ממקסם, בן־האדם ממזער (סימנים דינמיים אחרי החלפה בסיבוב נוסף). */
 function xoMinimaxScore(board, depth, isMaximizing, botSym, humanSym) {
   const w = xoCheckWinner(board);
   if (w === botSym) return 10 - depth;
@@ -579,7 +579,7 @@ const XO_MOVE_PREF = [4, 0, 2, 6, 8, 1, 3, 5, 7];
 /** חלק מהמהלכים אקראיים חוקיים — לא אופטימלי, כדי לאפשר ניצחון מדי פעם */
 const XO_BOT_RANDOM_MOVE_CHANCE = 0.27;
 
-function xoPickBotMove(board) {
+function xoPickBotMove(board, botSym, humanSym) {
   const legal = [];
   for (let i = 0; i < 9; i++) {
     if (board[i] != null && board[i] !== undefined) continue;
@@ -589,12 +589,10 @@ function xoPickBotMove(board) {
   if (Math.random() < XO_BOT_RANDOM_MOVE_CHANCE) {
     return legal[Math.floor(Math.random() * legal.length)];
   }
-  return xoPickBestMove(board);
+  return xoPickBestMove(board, botSym, humanSym);
 }
 
-function xoPickBestMove(board) {
-  const botSym = "O";
-  const humanSym = "X";
+function xoPickBestMove(board, botSym, humanSym) {
   let bestScore = -Infinity;
   const candidates = [];
   for (let i = 0; i < 9; i++) {
@@ -616,6 +614,16 @@ function xoPickBestMove(board) {
     if (candidates.includes(pref)) return pref;
   }
   return candidates[0];
+}
+
+function xoPlayerWithSymbol(room, sym) {
+  return room.players.find((p) => p.symbol === sym);
+}
+
+function xoSwapPlayerSymbols(room) {
+  for (const p of room.players) {
+    p.symbol = p.symbol === "X" ? "O" : "X";
+  }
 }
 
 function buildXoLastResult(room, draw, winnerPlayer) {
@@ -712,9 +720,9 @@ function runBotXoMove(io, code) {
   const human = room.players.find((p) => !p.isBot);
   if (!bot || !human || room.currentTurn !== bot.id) return;
 
-  const idx = xoPickBotMove(room.board);
+  const idx = xoPickBotMove(room.board, bot.symbol, human.symbol);
   if (idx < 0) return;
-  room.board[idx] = "O";
+  room.board[idx] = bot.symbol;
 
   const w = xoCheckWinner(room.board);
   if (w) {
@@ -837,6 +845,7 @@ function buildTakiDeck() {
   const deck = [];
   for (const color of TAKI_COLORS) {
     for (let n = 1; n <= 9; n++) {
+      if (n === 2) continue;
       deck.push(takiMakeCard({ type: "num", color, value: n }));
     }
     deck.push(takiMakeCard({ type: "plus2", color }));
@@ -889,6 +898,11 @@ function takiMatchesDiscard(card, top) {
   if (card.type === "change") return true;
   if (top.type === "change") {
     return card.color === top.color;
+  }
+  /* על קלף טאקי: +2/עצור/הפוך/מספר — באותו צבע; טאקי נוסף — בכל צבע */
+  if (top.type === "taki") {
+    if (card.type === "taki") return true;
+    return !!(card.color && top.color && card.color === top.color);
   }
   if (card.type === "plus2" && top.type === "plus2") return true;
   if (card.type === "stop" && top.type === "stop") return true;
@@ -1057,6 +1071,10 @@ function takiLegalPlays(room, playerId) {
     const col = room.takiMode.color;
     for (const c of p.hand) {
       if (c.type === "change") continue;
+      if (c.type === "taki" && top && top.type === "taki") {
+        out.push(c);
+        continue;
+      }
       if (c.color === col) out.push(c);
     }
     return out;
@@ -2488,7 +2506,10 @@ io.on("connection", (socket) => {
     }
     room.board = emptyXoBoard();
     room.phase = "playing";
-    room.currentTurn = room.players[0].id;
+    {
+      const firstX = xoPlayerWithSymbol(room, "X");
+      room.currentTurn = firstX ? firstX.id : room.players[0].id;
+    }
     room.lastResult = null;
     broadcastXo(io, room);
     if (typeof cb === "function") cb({ ok: true });
@@ -2557,9 +2578,13 @@ io.on("connection", (socket) => {
       if (typeof cb === "function") cb({ ok: false, error: "לא אפשרי" });
       return;
     }
+    xoSwapPlayerSymbols(room);
     room.phase = "playing";
     room.board = emptyXoBoard();
-    room.currentTurn = room.players[0].id;
+    {
+      const firstX = xoPlayerWithSymbol(room, "X");
+      room.currentTurn = firstX ? firstX.id : room.players[0].id;
+    }
     room.lastResult = null;
     broadcastXo(io, room);
     const bot = room.players.find((p) => p.isBot);
