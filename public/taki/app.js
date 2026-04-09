@@ -77,9 +77,6 @@
     return name;
   }
 
-  /** ספרות כאמוג'י keycap (1️⃣–9️⃣) */
-  const NUM_KEYCAP = ["", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"];
-
   const CHANGE_COLOR_EMOJI = { R: "🔴", Y: "🟡", B: "🔵", G: "🟢" };
 
   function cardClass(color) {
@@ -95,12 +92,11 @@
     el.className = "taki-card-face " + cardClass(card.color) + (small ? " small" : "");
     if (card.type === "num") {
       el.classList.add("taki-card-face--num");
-      el.textContent =
-        card.value >= 1 && card.value <= 9 ? NUM_KEYCAP[card.value] : String(card.value);
+      el.textContent = String(card.value);
     } else if (card.type === "plus2") {
       el.classList.add("taki-card-face--plus2");
       el.innerHTML =
-        '<span class="taki-emoji-plus2" aria-hidden="true"><span class="taki-p2-plus">➕</span><span class="taki-p2-two">2️⃣</span></span>';
+        '<span class="taki-emoji-plus2" aria-hidden="true"><span class="taki-p2-plus">➕</span><span class="taki-p2-two">2</span></span>';
     } else if (card.type === "stop") {
       el.classList.add("taki-card-face--icon");
       el.textContent = "✋";
@@ -108,7 +104,7 @@
     } else if (card.type === "reverse") {
       el.classList.add("taki-card-face--reverse");
       el.innerHTML =
-        '<span class="taki-rev-arrows" aria-hidden="true"><span>➡️</span><span>⬅️</span></span>';
+        '<span class="taki-rev-arrows" aria-hidden="true"><span class="taki-rev-a">\u2192</span><span class="taki-rev-a">\u2190</span></span>';
       el.setAttribute("aria-label", "הפוך כיוון");
     } else if (card.type === "taki") {
       el.classList.add("taki-card-face--taki");

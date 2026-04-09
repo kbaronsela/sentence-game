@@ -429,13 +429,31 @@ input:focus {
   font-size: 0.9rem;
 }
 
+/* ספרות כטקסט בלבד — בלי רקע keycap */
 .taki-card-face--num {
-  font-size: 2rem;
-  line-height: 1.1;
+  font-size: 2.35rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-variant-numeric: lining-nums tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+.taki-card-face--num.taki-card-face.c-red,
+.taki-card-face--num.taki-card-face.c-blue {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+.taki-card-face--num.taki-card-face.c-yellow {
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.45);
+}
+
+.taki-card-face--num.taki-card-face.c-green {
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.35);
 }
 
 .taki-card-face.small.taki-card-face--num {
-  font-size: 1.55rem;
+  font-size: 1.8rem;
 }
 
 .taki-card-face--icon {
@@ -468,7 +486,24 @@ input:focus {
 }
 
 .taki-p2-two {
-  font-size: 1.25rem;
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.taki-card-face.c-red .taki-p2-two,
+.taki-card-face.c-blue .taki-p2-two {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.taki-card-face.c-yellow .taki-p2-two {
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.45);
+}
+
+.taki-card-face.c-green .taki-p2-two {
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.35);
 }
 
 .taki-card-face.small .taki-p2-plus {
@@ -476,7 +511,7 @@ input:focus {
 }
 
 .taki-card-face.small .taki-p2-two {
-  font-size: 1.05rem;
+  font-size: 1.2rem;
 }
 
 .taki-card-face--reverse {
@@ -491,14 +526,38 @@ input:focus {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.12rem;
+  gap: 0.08rem;
   line-height: 1;
-  font-size: 1.05rem;
+}
+
+/* חיצי Unicode (→ ←) בלי רקע אמוג'י */
+.taki-rev-a {
+  display: block;
+  font-size: 1.65rem;
+  font-weight: 800;
+  line-height: 1;
+  font-family: "Assistant", ui-sans-serif, system-ui, sans-serif;
+}
+
+.taki-card-face.c-red .taki-rev-a,
+.taki-card-face.c-blue .taki-rev-a {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+.taki-card-face.c-yellow .taki-rev-a {
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.45);
+}
+
+.taki-card-face.c-green .taki-rev-a {
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.35);
+}
+
+.taki-card-face.small .taki-rev-a {
+  font-size: 1.35rem;
 }
 
 .taki-card-face.small .taki-rev-arrows {
-  font-size: 0.88rem;
-  gap: 0.06rem;
+  gap: 0.04rem;
 }
 
 .taki-card-static .taki-card-face {
