@@ -101,8 +101,17 @@ body {
   color: #3d3552;
 }
 
+.enter-step-title:first-of-type {
+  margin-top: 0.25rem;
+}
+
 .enter-hint {
   margin: 0 0 0.75rem;
+}
+
+.bot-hint {
+  margin-top: 0.35rem !important;
+  font-size: 0.86rem !important;
 }
 
 .card {
@@ -420,27 +429,16 @@ select:focus {
   font-size: 0.82rem;
 }
 
-.history-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
+.score-matrix tfoot th,
+.score-matrix tfoot td {
+  font-weight: 700;
+  background: linear-gradient(180deg, #ede9fe 0%, #f5f3ff 100%);
+  border-top-width: 2px;
 }
 
-.history-title {
-  margin-top: 0.5rem;
-}
-
-.history-block {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 0.85rem;
-  background: #fffefb;
-}
-
-.history-letter {
-  margin: 0 0 0.5rem;
-  font-size: 1rem;
-  color: #7c3aed;
+.score-matrix tbody th[scope="row"] {
+  font-weight: 600;
+  color: #5b4d7a;
 }
 
 @media (min-width: 480px) {

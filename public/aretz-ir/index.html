@@ -24,7 +24,7 @@
 
       <section id="screen-enter" class="card screen">
         <p class="enter-intro">
-          כל שחקן נכנס מהמכשיר שלו לאותה כתובת. בוחרים שם, מגדירים זמן (או בלי הגבלה), ואז פותחים חדר או מצטרפים.
+          כל שחקן נכנס מהמכשיר שלו לאותה כתובת (למשל מהקישור ששלחתם). קודם בוחרים שם, ואז או פותחים חדר או מצטרפים לחדר של מישהו אחר.
         </p>
         <label class="field">
           <span>איך קוראים לך? <span class="req-mark" aria-hidden="true">*</span></span>
@@ -40,7 +40,9 @@
         </label>
 
         <h2 class="enter-step-title">מארח/ת — פותחים משחק</h2>
-        <p class="hint enter-hint">בחרו הגבלת זמן לכל סיבוב (בלובי ניתן לשנות שוב).</p>
+        <p class="hint enter-hint">
+          יופיע קוד חדר; תעבירו אותו (או את הקישור) לשאר השחקנים. בוחרים זמן לסיבוב (או ללא הגבלה) — אפשר לשנות שוב בלובי.
+        </p>
         <label class="field field-inline">
           <span>זמן לסיבוב</span>
           <select id="select-time-enter" class="code-input">
@@ -54,10 +56,11 @@
           <button type="button" class="btn primary" id="btn-create">צור חדר חדש</button>
           <button type="button" class="btn bot" id="btn-solo">שחק לבד</button>
         </div>
+        <p class="hint enter-hint bot-hint">משחק לבד — ממלאים את כל הקטגוריות לבד; אפשר עם או בלי הגבלת זמן.</p>
 
         <h2 class="enter-step-title">שחקנים אחרים — נכנסים לחדר קיים</h2>
         <p class="hint enter-hint">
-          הזינו את <strong>קוד החדר</strong> — <strong>6 ספרות</strong> מהמארח/ת.
+          הזינו כאן את <strong>קוד החדר</strong> — <strong>6 ספרות</strong> שקיבלתם מהמארח (למשל <span class="mono" dir="ltr">482913</span>), ואז לוחצים ״הצטרף״.
         </p>
         <div class="join-row">
           <input
@@ -86,7 +89,7 @@
               העתק קישור
             </button>
           </p>
-          <p class="hint" id="lobby-hint-multi">שלחו את הקוד או את הקישור — כולם נכנסים מאותה כתובת.</p>
+          <p id="lobby-hint-multi" class="hint">שלחו את הקוד או את הקישור לשאר השחקנים — כולם נכנסים מאותה כתובת אינטרנט.</p>
         </div>
         <p id="lobby-hint-solo" class="hint" hidden>משחק לבד — לחצו ״התחל סיבוב״ כשמוכנים.</p>
 
@@ -134,11 +137,8 @@
         <p id="results-letter-line" class="results-letter-line"></p>
         <div id="results-round-table-wrap" class="table-wrap"></div>
 
-        <h2 class="section-title">סיכום מצטבר</h2>
-        <div id="results-totals-wrap" class="table-wrap"></div>
-
-        <h2 class="section-title history-title" id="history-heading" hidden>כל האותיות</h2>
-        <div id="results-history-wrap" class="history-wrap"></div>
+        <h2 class="section-title" id="results-matrix-heading">ניקוד לפי אות</h2>
+        <div id="results-matrix-wrap" class="table-wrap"></div>
 
         <div class="actions stack">
           <button type="button" class="btn primary" id="btn-next-round" hidden>סיבוב נוסף</button>

@@ -95,26 +95,31 @@ body {
   font-size: 2rem;
   display: block;
   margin-bottom: 0.5rem;
+  width: 100%;
+  text-align: right;
 }
 
 .game-card-icon-rps {
   display: flex;
   flex-direction: row;
   align-items: center;
+  justify-content: flex-end;
   gap: 0.45rem;
   font-size: 1.85rem;
   line-height: 1;
+  width: 100%;
 }
 
 .game-card-icon-xo {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
   gap: 0.5rem;
   font-size: 1.75rem;
   line-height: 1;
   font-weight: 800;
+  width: 100%;
 }
 
 .game-card-icon-xo .xo-icon {

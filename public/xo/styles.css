@@ -100,6 +100,10 @@ body {
   color: #3d3552;
 }
 
+.enter-step-title:first-of-type {
+  margin-top: 0.25rem;
+}
+
 .enter-hint {
   margin: 0 0 0.75rem;
 }
@@ -132,6 +136,23 @@ body {
 .req-mark {
   color: #dc2626;
   font-weight: 700;
+}
+
+.field input[type="text"] {
+  font: inherit;
+  color: var(--text);
+  background: #faf8ff;
+  border: 1px solid rgba(100, 80, 140, 0.18);
+  border-radius: 12px;
+  padding: 0.7rem 0.9rem;
+  width: 100%;
+}
+
+.field input[type="text"]:focus {
+  outline: 2px solid rgba(99, 102, 241, 0.45);
+  outline-offset: 1px;
+  background: #fff;
+  border-color: rgba(99, 102, 241, 0.35);
 }
 
 input.code-input {
@@ -185,16 +206,31 @@ input:focus {
   box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
 }
 
+.btn.primary:hover:not(:disabled) {
+  filter: brightness(1.05);
+  box-shadow: 0 6px 22px rgba(99, 102, 241, 0.45);
+}
+
 .btn.secondary {
   background: linear-gradient(180deg, #ecfdf5 0%, #d1fae5 100%);
   color: #065f46;
   border: 1px solid rgba(16, 185, 129, 0.35);
 }
 
+.btn.secondary:hover:not(:disabled) {
+  filter: brightness(1.02);
+  border-color: rgba(16, 185, 129, 0.5);
+}
+
 .btn.bot {
   background: linear-gradient(145deg, #fce7f3 0%, #fef3c7 50%, #dbeafe 100%);
   color: #6b21a8;
   border: 1px solid rgba(139, 92, 246, 0.35);
+}
+
+.btn.bot:hover:not(:disabled) {
+  filter: brightness(1.03);
+  border-color: rgba(139, 92, 246, 0.5);
 }
 
 .bot-hint {

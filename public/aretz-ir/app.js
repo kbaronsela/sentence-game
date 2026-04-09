@@ -174,43 +174,38 @@
     $("results-round-table-wrap").innerHTML = roundHtml;
 
     const totals = room.totals || {};
-    var totHtml = '<table class="score-table"><thead><tr><th>שחקן</th><th>סה״כ נקודות</th></tr></thead><tbody>';
-    players.forEach((p) => {
-      const t = totals[p.id] != null ? totals[p.id] : 0;
-      totHtml += "<tr><td>" + escapeHtml(p.name) + "</td><td><strong>" + t + "</strong></td></tr>";
-    });
-    totHtml += "</tbody></table>";
-    $("results-totals-wrap").innerHTML = totHtml;
-
     const hist = room.history || [];
-    const histWrap = $("results-history-wrap");
-    const histHead = $("history-heading");
+    const matrixHeading = $("results-matrix-heading");
+    const matrixWrap = $("results-matrix-wrap");
+
     if (hist.length === 0) {
-      histHead.hidden = true;
-      histWrap.innerHTML = "";
+      matrixHeading.hidden = true;
+      matrixWrap.innerHTML = "";
     } else {
-      histHead.hidden = false;
-      var h = "";
+      matrixHeading.hidden = false;
+      var mx =
+        '<table class="score-table score-matrix"><thead><tr><th scope="col">אות</th>';
+      players.forEach((p) => {
+        mx += "<th scope=\"col\">" + escapeHtml(p.name) + (p.isYou ? " (אתה)" : "") + "</th>";
+      });
+      mx += "</tr></thead><tbody>";
       hist.forEach((entry) => {
         const letterH = entry.letter || "?";
-        h += '<div class="history-block"><h3 class="history-letter">אות ' + escapeHtml(letterH) + "</h3>";
-        h += '<table class="score-table compact"><thead><tr><th>שחקן</th><th>נקודות בסיבוב</th><th>סה״כ מצטבר אחרי</th></tr></thead><tbody>';
+        mx += "<tr><th scope=\"row\">" + escapeHtml(letterH) + "</th>";
         players.forEach((p) => {
           const br = entry.breakdown && entry.breakdown[p.id];
           const roundPts = br && br.roundTotal != null ? br.roundTotal : "—";
-          const after = entry.totalsAfter && entry.totalsAfter[p.id] != null ? entry.totalsAfter[p.id] : "—";
-          h +=
-            "<tr><td>" +
-            escapeHtml(p.name) +
-            "</td><td>" +
-            roundPts +
-            "</td><td>" +
-            after +
-            "</td></tr>";
+          mx += "<td>" + roundPts + "</td>";
         });
-        h += "</tbody></table></div>";
+        mx += "</tr>";
       });
-      histWrap.innerHTML = h;
+      mx += "</tbody><tfoot><tr><th scope=\"row\">סה״כ</th>";
+      players.forEach((p) => {
+        const t = totals[p.id] != null ? totals[p.id] : 0;
+        mx += "<td>" + t + "</td>";
+      });
+      mx += "</tr></tfoot></table>";
+      matrixWrap.innerHTML = mx;
     }
   }
 

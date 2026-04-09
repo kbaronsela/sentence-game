@@ -24,7 +24,7 @@
 
       <section id="screen-enter" class="card screen">
         <p class="enter-intro">
-          כל שחקן נכנס מהמכשיר שלו לאותה כתובת. בוחרים שם — מארח/ת פותח חדר (איקס) או משחקים מול בוט; היריבה מצטרפת עם הקוד (עיגול).
+          כל שחקן נכנס מהמכשיר שלו לאותה כתובת (למשל מהקישור ששלחתם). קודם בוחרים שם, ואז או פותחים חדר או מצטרפים לחדר של מישהו אחר.
         </p>
         <label class="field">
           <span>איך קוראים לך? <span class="req-mark" aria-hidden="true">*</span></span>
@@ -40,16 +40,18 @@
         </label>
 
         <h2 class="enter-step-title">מארח/ת — פותחים משחק</h2>
-        <p class="hint enter-hint">תהיו איקס (X). שחקו שניכם או מול בוט.</p>
+        <p class="hint enter-hint">
+          יופיע קוד חדר; תעבירו אותו (או את הקישור) לשאר השחקנים. המארח/ת משחק איקס (X), המצטרף/ת עיגול (O). אפשר גם מול בוט.
+        </p>
         <div class="actions stack">
           <button type="button" class="btn primary" id="btn-create">צור חדר חדש</button>
           <button type="button" class="btn bot" id="btn-solo">שחק מול בוט</button>
         </div>
-        <p class="hint enter-hint bot-hint">מול הבוט אתם איקס; הבוט משחק עיגול.</p>
+        <p class="hint enter-hint bot-hint">מול הבוט אתם איקס והבוט עיגול.</p>
 
         <h2 class="enter-step-title">שחקנים אחרים — נכנסים לחדר קיים</h2>
         <p class="hint enter-hint">
-          הזינו את <strong>קוד החדר</strong> — <strong>6 ספרות</strong> (אתם תהיו עיגול).
+          הזינו כאן את <strong>קוד החדר</strong> — <strong>6 ספרות</strong> שקיבלתם מהמארח (למשל <span class="mono" dir="ltr">482913</span>), ואז לוחצים ״הצטרף״. המצטרף/ת הוא עיגול (O).
         </p>
         <div class="join-row">
           <input
