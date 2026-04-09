@@ -77,6 +77,11 @@
     return name;
   }
 
+  /** ספרות כאמוג'י keycap (1️⃣–9️⃣) */
+  const NUM_KEYCAP = ["", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"];
+
+  const CHANGE_COLOR_EMOJI = { R: "🔴", Y: "🟡", B: "🔵", G: "🟢" };
+
   function cardClass(color) {
     if (color === "R") return "c-red";
     if (color === "Y") return "c-yellow";
@@ -89,19 +94,33 @@
     const el = document.createElement("div");
     el.className = "taki-card-face " + cardClass(card.color) + (small ? " small" : "");
     if (card.type === "num") {
-      el.textContent = String(card.value);
+      el.classList.add("taki-card-face--num");
+      el.textContent =
+        card.value >= 1 && card.value <= 9 ? NUM_KEYCAP[card.value] : String(card.value);
     } else if (card.type === "plus2") {
-      el.textContent = "+2";
+      el.classList.add("taki-card-face--plus2");
+      el.innerHTML =
+        '<span class="taki-emoji-plus2" aria-hidden="true"><span class="taki-p2-plus">➕</span><span class="taki-p2-two">2️⃣</span></span>';
     } else if (card.type === "stop") {
-      el.textContent = "עצור";
+      el.classList.add("taki-card-face--icon");
+      el.textContent = "✋";
+      el.setAttribute("aria-label", "עצור");
     } else if (card.type === "reverse") {
-      el.textContent = "הפוך";
+      el.classList.add("taki-card-face--reverse");
+      el.innerHTML =
+        '<span class="taki-rev-arrows" aria-hidden="true"><span>➡️</span><span>⬅️</span></span>';
+      el.setAttribute("aria-label", "הפוך כיוון");
     } else if (card.type === "taki") {
-      el.textContent = "טאקי";
+      el.classList.add("taki-card-face--taki");
+      el.textContent = "TAKI";
     } else if (card.type === "change") {
-      el.textContent = card.color ? "צבע" : "שינוי";
-      if (card.color) {
-        el.textContent = COLOR_NAMES[card.color] || "";
+      el.classList.add("taki-card-face--icon");
+      if (card.color && CHANGE_COLOR_EMOJI[card.color]) {
+        el.textContent = CHANGE_COLOR_EMOJI[card.color];
+        el.setAttribute("aria-label", "שינוי צבע — " + (COLOR_NAMES[card.color] || card.color));
+      } else {
+        el.textContent = "🎨";
+        el.setAttribute("aria-label", "שינוי צבע");
       }
     }
     return el;
@@ -168,7 +187,6 @@
 
     if (room.phase === "playing") {
       showScreen("game");
-      $("deck-count").textContent = String(room.deckCount != null ? room.deckCount : 0);
       renderDiscard($("discard-slot"), room.topCard);
 
       const scoresEl = $("taki-scores");
