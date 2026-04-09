@@ -172,6 +172,15 @@
         $("play-first-hint").hidden = !room.isFirstSentence;
         $("seed-wrap").hidden = room.isFirstSentence;
         $("play-seed").textContent = room.visibleSeed || "";
+        requestAnimationFrame(function () {
+          const ta = $("input-sentence");
+          if (ta && !ta.disabled) {
+            ta.focus();
+            try {
+              ta.setSelectionRange(ta.value.length, ta.value.length);
+            } catch (e) {}
+          }
+        });
       }
       return;
     }
