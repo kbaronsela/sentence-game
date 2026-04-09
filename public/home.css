@@ -106,6 +106,26 @@ body {
   line-height: 1;
 }
 
+.game-card-icon-xo {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 1.75rem;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.game-card-icon-xo .xo-icon {
+  color: #4f46e5;
+}
+
+.game-card-icon-xo .xo-icon.o {
+  color: #db2777;
+  font-size: 1.95rem;
+}
+
 .game-card h2 {
   margin: 0 0 0.5rem;
   font-size: 1.2rem;

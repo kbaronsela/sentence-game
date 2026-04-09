@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#fef6f0" />
+    <title>ארץ עיר</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="bg-pattern" aria-hidden="true"></div>
+    <main class="shell">
+      <p class="sub-nav"><a id="link-home" href="/">← משחקי ילדות</a></p>
+      <header class="hero">
+        <h1>ארץ עיר</h1>
+        <p class="tagline">מילים שמתחילות באות שנבחרה — בודקים מי חשב כמוכם ומי לא</p>
+      </header>
+
+      <section id="screen-enter" class="card screen">
+        <p class="enter-intro">
+          כל שחקן נכנס מהמכשיר שלו לאותה כתובת. בוחרים שם, מגדירים זמן (או בלי הגבלה), ואז פותחים חדר או מצטרפים.
+        </p>
+        <label class="field">
+          <span>איך קוראים לך? <span class="req-mark" aria-hidden="true">*</span></span>
+          <input
+            type="text"
+            id="input-name"
+            maxlength="24"
+            placeholder="השם שלך"
+            autocomplete="nickname"
+            required
+            aria-required="true"
+          />
+        </label>
+
+        <h2 class="enter-step-title">מארח/ת — פותחים משחק</h2>
+        <p class="hint enter-hint">בחרו הגבלת זמן לכל סיבוב (בלובי ניתן לשנות שוב).</p>
+        <label class="field field-inline">
+          <span>זמן לסיבוב</span>
+          <select id="select-time-enter" class="code-input">
+            <option value="0">ללא הגבלה</option>
+            <option value="90">דקה וחצי (90 שניות)</option>
+            <option value="180">3 דקות</option>
+            <option value="300">5 דקות</option>
+          </select>
+        </label>
+        <div class="actions stack">
+          <button type="button" class="btn primary" id="btn-create">צור חדר חדש</button>
+          <button type="button" class="btn bot" id="btn-solo">שחק לבד</button>
+        </div>
+
+        <h2 class="enter-step-title">שחקנים אחרים — נכנסים לחדר קיים</h2>
+        <p class="hint enter-hint">
+          הזינו את <strong>קוד החדר</strong> — <strong>6 ספרות</strong> מהמארח/ת.
+        </p>
+        <div class="join-row">
+          <input
+            type="text"
+            id="input-code"
+            class="code-input"
+            maxlength="6"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            placeholder="6 ספרות"
+            dir="ltr"
+            autocomplete="off"
+            aria-label="קוד החדר — 6 ספרות"
+          />
+          <button type="button" class="btn secondary" id="btn-join">הצטרף לחדר</button>
+        </div>
+        <p id="enter-error" class="error" role="alert" hidden></p>
+      </section>
+
+      <section id="screen-lobby" class="card screen" hidden>
+        <div id="lobby-code-row">
+          <p class="room-code-line">
+            קוד החדר:
+            <strong id="lobby-code" class="mono" dir="ltr"></strong>
+            <button type="button" class="btn secondary btn-copy-link" id="btn-copy-code" title="העתקת קישור לחדר">
+              העתק קישור
+            </button>
+          </p>
+          <p class="hint" id="lobby-hint-multi">שלחו את הקוד או את הקישור — כולם נכנסים מאותה כתובת.</p>
+        </div>
+        <p id="lobby-hint-solo" class="hint" hidden>משחק לבד — לחצו ״התחל סיבוב״ כשמוכנים.</p>
+
+        <div id="lobby-time-wrap" class="lobby-time-wrap">
+          <label class="field field-inline">
+            <span>זמן לסיבוב</span>
+            <select id="select-time-lobby" class="code-input">
+              <option value="0">ללא הגבלה</option>
+              <option value="90">דקה וחצי</option>
+              <option value="180">3 דקות</option>
+              <option value="300">5 דקות</option>
+            </select>
+          </label>
+          <p class="hint subtle" id="lobby-time-hint" hidden>רק המארח/ת משנים את ההגדרה.</p>
+        </div>
+
+        <h2 class="section-title">שחקנים</h2>
+        <ul id="lobby-players" class="player-list"></ul>
+        <div class="actions stack" id="lobby-actions">
+          <button type="button" class="btn secondary" id="btn-lobby-back">חזרה למסך הכניסה</button>
+          <button type="button" class="btn primary" id="btn-start" disabled>התחל סיבוב</button>
+        </div>
+      </section>
+
+      <section id="screen-play" class="card screen" hidden>
+        <div class="letter-banner" aria-live="polite">
+          <span class="letter-label">האות:</span>
+          <span id="play-letter" class="letter-big" dir="rtl"></span>
+        </div>
+        <p id="play-timer" class="play-timer" hidden></p>
+        <p id="play-wait-status" class="status-line"></p>
+        <p class="hint play-rules-hint">
+          ניקוד: מילה ייחודית (שאף אחד אחר לא כתב) — 2 נק׳. אותה מילה אצל יותר משחקן — 1 נק׳ לכל אחד. מילה ריקה, שלא
+          מתחילה באות, או שאינה עברית תקינה (לפחות שתי אותיות עבריות) — 0 נק׳.
+        </p>
+        <div id="play-fields" class="ae-fields"></div>
+        <div class="actions stack">
+          <button type="button" class="btn primary" id="btn-done">סיימתי</button>
+        </div>
+        <p id="play-error" class="error" role="alert" hidden></p>
+      </section>
+
+      <section id="screen-results" class="card screen" hidden>
+        <h2 class="section-title">תוצאות הסיבוב</h2>
+        <p id="results-letter-line" class="results-letter-line"></p>
+        <div id="results-round-table-wrap" class="table-wrap"></div>
+
+        <h2 class="section-title">סיכום מצטבר</h2>
+        <div id="results-totals-wrap" class="table-wrap"></div>
+
+        <h2 class="section-title history-title" id="history-heading" hidden>כל האותיות</h2>
+        <div id="results-history-wrap" class="history-wrap"></div>
+
+        <div class="actions stack">
+          <button type="button" class="btn primary" id="btn-next-round" hidden>סיבוב נוסף</button>
+          <button type="button" class="btn secondary" id="btn-results-home">חזרה לעמוד הבית</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
