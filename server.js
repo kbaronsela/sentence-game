@@ -676,6 +676,579 @@ function broadcastXo(io, room) {
     });
 }
 
+/** טאקי — עד 4 שחקנים, מול בוט או מרובה משתתפים */
+const takiRooms = new Map();
+const pendingTakiLeave = new Map();
+
+const TAKI_COLORS = ["R", "Y", "B", "G"];
+
+function cancelPendingTakiLeave(socketId) {
+  const t = pendingTakiLeave.get(socketId);
+  if (t) {
+    clearTimeout(t);
+    pendingTakiLeave.delete(socketId);
+  }
+}
+
+function takiRoomName(code) {
+  return `taki:${code}`;
+}
+
+function takiMakeCard(spec) {
+  return { id: crypto.randomUUID(), ...spec };
+}
+
+function buildTakiDeck() {
+  const deck = [];
+  for (const color of TAKI_COLORS) {
+    for (let n = 1; n <= 9; n++) {
+      deck.push(takiMakeCard({ type: "num", color, value: n }));
+    }
+    deck.push(takiMakeCard({ type: "plus2", color }));
+    deck.push(takiMakeCard({ type: "stop", color }));
+    deck.push(takiMakeCard({ type: "reverse", color }));
+    deck.push(takiMakeCard({ type: "taki", color }));
+  }
+  for (let i = 0; i < 4; i++) {
+    deck.push(takiMakeCard({ type: "change", color: null }));
+  }
+  return deck;
+}
+
+function shuffleTakiDeck(deck) {
+  const a = deck;
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function takiCardPoints(c) {
+  if (!c) return 0;
+  if (c.type === "num") return c.value || 0;
+  if (c.type === "change") return 15;
+  return 10;
+}
+
+function takiHandPoints(cards) {
+  return (cards || []).reduce((s, c) => s + takiCardPoints(c), 0);
+}
+
+function takiReshuffleDiscardIfNeeded(room) {
+  if (room.deck.length > 0 || room.discard.length < 2) return;
+  const top = room.discard.pop();
+  const rest = room.discard.splice(0);
+  shuffleTakiDeck(rest);
+  room.deck = rest;
+  room.discard = [top];
+}
+
+function takiTop(room) {
+  return room.discard.length ? room.discard[room.discard.length - 1] : null;
+}
+
+/** האם כרטיס מתאים לקלף העליון (מצב רגיל, לא טאקי) */
+function takiMatchesDiscard(card, top) {
+  if (!top) return true;
+  if (card.type === "change") return true;
+  if (top.type === "change") {
+    return card.color === top.color;
+  }
+  if (card.type === "plus2" && top.type === "plus2") return true;
+  if (card.color && top.color && card.color === top.color) return true;
+  if (card.type === "num" && top.type === "num" && card.value === top.value) return true;
+  return false;
+}
+
+function takiCurrentPlayer(room) {
+  const n = room.players.length;
+  if (n === 0) return null;
+  return room.players[((room.turnIndex % n) + n) % n];
+}
+
+function takiAdvanceTurn(room, steps) {
+  const n = room.players.length;
+  let s = steps;
+  while (s > 0) {
+    room.turnIndex = (room.turnIndex + room.direction + n) % n;
+    s--;
+  }
+}
+
+function createTakiRoom(hostSocketId, hostName, clientId) {
+  let code;
+  do {
+    code = randomRoomCode();
+  } while (takiRooms.has(code));
+
+  const room = {
+    code,
+    solo: false,
+    hostId: hostSocketId,
+    mode: "pvp",
+    phase: "lobby",
+    players: [{ id: hostSocketId, name: hostName, clientId, score: 0, hand: [], isBot: false }],
+    deck: [],
+    discard: [],
+    turnIndex: 0,
+    direction: 1,
+    takiMode: null,
+    plus2Stack: 0,
+    colorPickPlayerId: null,
+    lastResult: null,
+  };
+  takiRooms.set(code, room);
+  return room;
+}
+
+function createTakiSoloRoom(hostSocketId, hostName, clientId) {
+  let code;
+  do {
+    code = randomRoomCode();
+  } while (takiRooms.has(code));
+
+  const room = {
+    code,
+    solo: true,
+    hostId: hostSocketId,
+    mode: "bot",
+    phase: "lobby",
+    players: [
+      { id: hostSocketId, name: hostName, clientId, score: 0, hand: [], isBot: false },
+      { id: `takibot:${code}:1`, name: "בוט א׳", clientId: "taki-bot-1", score: 0, hand: [], isBot: true },
+      { id: `takibot:${code}:2`, name: "בוט ב׳", clientId: "taki-bot-2", score: 0, hand: [], isBot: true },
+      { id: `takibot:${code}:3`, name: "בוט ג׳", clientId: "taki-bot-3", score: 0, hand: [], isBot: true },
+    ],
+    deck: [],
+    discard: [],
+    turnIndex: 0,
+    direction: 1,
+    takiMode: null,
+    plus2Stack: 0,
+    colorPickPlayerId: null,
+    lastResult: null,
+  };
+  takiRooms.set(code, room);
+  return room;
+}
+
+function leaveTakiRoom(socketId, io) {
+  for (const [code, room] of takiRooms.entries()) {
+    const idx = room.players.findIndex((p) => p.id === socketId);
+    if (idx === -1) continue;
+
+    room.players.splice(idx, 1);
+    if (room.players.length === 0 || room.solo) {
+      takiRooms.delete(code);
+      return;
+    }
+    if (room.hostId === socketId && room.players[0]) {
+      room.hostId = room.players[0].id;
+    }
+    if (room.phase === "playing") {
+      room.phase = "lobby";
+      room.deck = [];
+      room.discard = [];
+      room.takiMode = null;
+      room.plus2Stack = 0;
+      room.colorPickPlayerId = null;
+      room.players.forEach((p) => {
+        p.hand = [];
+      });
+    }
+    broadcastTaki(io, room);
+    return;
+  }
+}
+
+function takiStartRound(room) {
+  let deck = shuffleTakiDeck(buildTakiDeck());
+  const n = room.players.length;
+  const per = 8;
+  room.players.forEach((p) => {
+    p.hand = [];
+  });
+  for (let r = 0; r < per; r++) {
+    for (let i = 0; i < n; i++) {
+      if (deck.length === 0) break;
+      room.players[i].hand.push(deck.pop());
+    }
+  }
+  room.deck = deck;
+  room.discard = [];
+  room.takiMode = null;
+  room.plus2Stack = 0;
+  room.colorPickPlayerId = null;
+  room.direction = 1;
+  room.turnIndex = 0;
+
+  let starter = null;
+  while (room.deck.length) {
+    const c = room.deck.pop();
+    if (c.type === "num") {
+      starter = c;
+      break;
+    }
+    room.deck.unshift(c);
+    shuffleTakiDeck(room.deck);
+  }
+  if (!starter) {
+    starter = takiMakeCard({ type: "num", color: "R", value: 1 });
+  }
+  room.discard.push(starter);
+}
+
+function takiLegalPlays(room, playerId) {
+  const p = room.players.find((x) => x.id === playerId);
+  if (!p) return [];
+  const top = takiTop(room);
+  const out = [];
+
+  if (room.colorPickPlayerId === playerId) {
+    return [];
+  }
+
+  if (room.plus2Stack > 0) {
+    for (const c of p.hand) {
+      if (c.type === "plus2") out.push(c);
+    }
+    return out;
+  }
+
+  if (room.takiMode && room.takiMode.playerId === playerId) {
+    const col = room.takiMode.color;
+    for (const c of p.hand) {
+      if (c.type === "change") continue;
+      if (c.color === col) out.push(c);
+    }
+    return out;
+  }
+
+  for (const c of p.hand) {
+    if (takiMatchesDiscard(c, top)) out.push(c);
+  }
+  return out;
+}
+
+function takiApplySpecialAfterPlay(room, card, playerId) {
+  const n = room.players.length;
+  if (card.type === "stop") {
+    room.turnIndex = (room.turnIndex + 2 * room.direction + n * 10) % n;
+    return;
+  }
+  if (card.type === "reverse") {
+    room.direction *= -1;
+    takiAdvanceTurn(room, 1);
+    return;
+  }
+  if (card.type === "plus2") {
+    room.plus2Stack += 1;
+    takiAdvanceTurn(room, 1);
+    return;
+  }
+  if (card.type === "taki") {
+    room.takiMode = { color: card.color, playerId };
+    return;
+  }
+  if (card.type === "change") {
+    room.colorPickPlayerId = playerId;
+    return;
+  }
+  takiAdvanceTurn(room, 1);
+}
+
+function takiMaybeBot(io, code) {
+  const room = takiRooms.get(code);
+  if (!room || room.phase !== "playing") return;
+  const cur = takiCurrentPlayer(room);
+  if (cur && cur.isBot) scheduleBotTaki(io, code, 450);
+}
+
+function takiPlayCard(room, playerId, cardId, io, code) {
+  const p = room.players.find((x) => x.id === playerId);
+  if (!p) return { ok: false, error: "לא נמצא" };
+  const legal = takiLegalPlays(room, playerId);
+  const card = p.hand.find((c) => c.id === cardId);
+  if (!card || !legal.some((c) => c.id === cardId)) return { ok: false, error: "מהלך לא חוקי" };
+
+  const idx = p.hand.findIndex((c) => c.id === cardId);
+  p.hand.splice(idx, 1);
+  room.discard.push(card);
+
+  const win = takiCheckRoundWin(room, playerId);
+  if (win) {
+    room.phase = "result";
+    room.lastResult = win;
+    broadcastTaki(io, room);
+    return { ok: true };
+  }
+
+  if (room.takiMode && room.takiMode.playerId === playerId) {
+    if (card.type === "num" || card.type === "taki") {
+      if (card.type === "taki") {
+        room.takiMode = { color: card.color, playerId };
+      }
+      broadcastTaki(io, room);
+      takiMaybeBot(io, code);
+      return { ok: true };
+    }
+    room.takiMode = null;
+    takiApplySpecialAfterPlay(room, card, playerId);
+    broadcastTaki(io, room);
+    takiMaybeBot(io, code);
+    return { ok: true };
+  }
+
+  if (card.type === "change") {
+    room.colorPickPlayerId = playerId;
+    broadcastTaki(io, room);
+    takiMaybeBot(io, code);
+    return { ok: true };
+  }
+
+  takiApplySpecialAfterPlay(room, card, playerId);
+  broadcastTaki(io, room);
+  takiMaybeBot(io, code);
+  return { ok: true };
+}
+
+function takiPickColor(room, playerId, color, io, code) {
+  if (room.colorPickPlayerId !== playerId) return { ok: false, error: "לא נדרש בחירה" };
+  if (!TAKI_COLORS.includes(color)) return { ok: false, error: "צבע לא חוקי" };
+  const top = takiTop(room);
+  if (top && top.type === "change") top.color = color;
+  room.colorPickPlayerId = null;
+  takiAdvanceTurn(room, 1);
+  broadcastTaki(io, room);
+  takiMaybeBot(io, code);
+  return { ok: true };
+}
+
+function takiTakiDone(room, playerId, io, code) {
+  if (!room.takiMode || room.takiMode.playerId !== playerId) return { ok: false, error: "לא במצב טאקי" };
+  room.takiMode = null;
+  takiAdvanceTurn(room, 1);
+  broadcastTaki(io, room);
+  takiMaybeBot(io, code);
+  return { ok: true };
+}
+
+function takiDraw(room, playerId, io, code) {
+  const cur = takiCurrentPlayer(room);
+  if (!cur || cur.id !== playerId) return { ok: false, error: "לא התור שלך" };
+  if (room.colorPickPlayerId) return { ok: false, error: "בחרו צבע" };
+
+  if (room.plus2Stack > 0) {
+    takiResolvePlus2Draw(room, playerId);
+    const win = takiCheckRoundWin(room, playerId);
+    if (win) {
+      room.phase = "result";
+      room.lastResult = win;
+      broadcastTaki(io, room);
+      return { ok: true };
+    }
+    broadcastTaki(io, room);
+    takiMaybeBot(io, code);
+    return { ok: true };
+  }
+
+  if (room.takiMode) {
+    return { ok: false, error: "השתמשו בקלף או לחצו ״סיימתי״" };
+  }
+
+  const legal = takiLegalPlays(room, playerId);
+  if (legal.length > 0) return { ok: false, error: "יש לכם מהלך חוקי" };
+
+  takiReshuffleDiscardIfNeeded(room);
+  const p = room.players.find((x) => x.id === playerId);
+  if (room.deck.length > 0) {
+    p.hand.push(room.deck.pop());
+  }
+  takiAdvanceTurn(room, 1);
+  broadcastTaki(io, room);
+  takiMaybeBot(io, code);
+  return { ok: true };
+}
+
+function takiResolvePlus2Draw(room, playerId) {
+  const p = room.players.find((x) => x.id === playerId);
+  if (!p || room.plus2Stack <= 0) return;
+  const drawCount = 2 * room.plus2Stack;
+  room.plus2Stack = 0;
+  for (let i = 0; i < drawCount; i++) {
+    takiReshuffleDiscardIfNeeded(room);
+    if (room.deck.length === 0) break;
+    p.hand.push(room.deck.pop());
+  }
+  takiAdvanceTurn(room, 1);
+}
+
+function takiCheckRoundWin(room, playerId) {
+  const p = room.players.find((x) => x.id === playerId);
+  if (!p || p.hand.length > 0) return null;
+  let gained = 0;
+  for (const o of room.players) {
+    if (o.id === playerId) continue;
+    gained += takiHandPoints(o.hand);
+  }
+  p.score = (p.score || 0) + gained;
+  return {
+    winnerId: playerId,
+    winnerName: p.name,
+    roundPoints: gained,
+    scores: room.players.map((x) => ({ name: x.name, score: x.score || 0, isBot: !!x.isBot })),
+  };
+}
+
+function serializeTakiRoom(room, forSocketId) {
+  const isHost = room.hostId === forSocketId;
+  const me = room.players.find((p) => p.id === forSocketId);
+  const top = takiTop(room);
+  const cur = takiCurrentPlayer(room);
+
+  if (room.phase === "result" && room.lastResult) {
+    return {
+      code: room.code,
+      phase: room.phase,
+      mode: room.mode,
+      solo: !!room.solo,
+      players: room.players.map((p) => ({
+        name: p.name,
+        isYou: p.id === forSocketId,
+        isBot: !!p.isBot,
+        score: p.score || 0,
+        handCount: (p.hand && p.hand.length) || 0,
+      })),
+      isHost,
+      topCard: top,
+      deckCount: room.deck.length,
+      discardCount: room.discard.length,
+      turnIndex: room.turnIndex,
+      direction: room.direction,
+      currentPlayerId: cur ? cur.id : null,
+      currentTurnName: cur ? cur.name : null,
+      isMyTurn: false,
+      myHand: me ? [...(me.hand || [])] : [],
+      takiMode: room.takiMode,
+      plus2Stack: room.plus2Stack,
+      colorPickPlayerId: room.colorPickPlayerId,
+      mustPickColor: room.colorPickPlayerId === forSocketId,
+      inTakiChain: !!(room.takiMode && room.takiMode.playerId === forSocketId),
+      result: room.lastResult,
+    };
+  }
+
+  return {
+    code: room.code,
+    phase: room.phase,
+    mode: room.mode,
+    solo: !!room.solo,
+    players: room.players.map((p) => ({
+      name: p.name,
+      isYou: p.id === forSocketId,
+      isBot: !!p.isBot,
+      score: p.score || 0,
+      handCount: (p.hand && p.hand.length) || 0,
+    })),
+    isHost,
+    topCard: top,
+    deckCount: room.deck.length,
+    discardCount: room.discard.length,
+    turnIndex: room.turnIndex,
+    direction: room.direction,
+    currentPlayerId: cur ? cur.id : null,
+    currentTurnName: cur ? cur.name : null,
+    isMyTurn:
+      room.phase === "playing" &&
+      cur &&
+      cur.id === forSocketId &&
+      (!room.colorPickPlayerId || room.colorPickPlayerId === forSocketId),
+    myHand: me ? [...(me.hand || [])] : [],
+    takiMode: room.takiMode,
+    plus2Stack: room.plus2Stack,
+    colorPickPlayerId: room.colorPickPlayerId,
+    mustPickColor: room.colorPickPlayerId === forSocketId,
+    inTakiChain: !!(room.takiMode && room.takiMode.playerId === forSocketId),
+    result: null,
+  };
+}
+
+function broadcastTaki(io, room) {
+  const rn = takiRoomName(room.code);
+  const allowed = new Set(room.players.filter((p) => !p.isBot).map((p) => p.id));
+
+  io.in(rn)
+    .fetchSockets()
+    .then((socks) => {
+      const got = new Set();
+      for (const s of socks) {
+        if (!allowed.has(s.id)) continue;
+        s.emit("taki:update", serializeTakiRoom(room, s.id));
+        got.add(s.id);
+      }
+      for (const p of room.players) {
+        if (got.has(p.id)) continue;
+        if (p.isBot) continue;
+        io.to(p.id).emit("taki:update", serializeTakiRoom(room, p.id));
+      }
+    })
+    .catch(() => {
+      room.players.forEach((p) => {
+        if (p.isBot) return;
+        io.to(p.id).emit("taki:update", serializeTakiRoom(room, p.id));
+      });
+    });
+}
+
+function scheduleBotTaki(io, code, delayMs) {
+  setTimeout(() => runBotTakiMove(io, code), delayMs || 500);
+}
+
+function runBotTakiMove(io, code) {
+  const room = takiRooms.get(code);
+  if (!room || room.phase !== "playing") return;
+  const bot = takiCurrentPlayer(room);
+  if (!bot || !bot.isBot) return;
+
+  if (room.colorPickPlayerId === bot.id) {
+    const col = TAKI_COLORS[Math.floor(Math.random() * TAKI_COLORS.length)];
+    takiPickColor(room, bot.id, col, io, code);
+    return;
+  }
+
+  if (room.plus2Stack > 0) {
+    const legal = takiLegalPlays(room, bot.id);
+    if (legal.length && Math.random() < 0.85) {
+      const card = legal[Math.floor(Math.random() * legal.length)];
+      takiPlayCard(room, bot.id, card.id, io, code);
+    } else {
+      takiDraw(room, bot.id, io, code);
+    }
+    return;
+  }
+
+  if (room.takiMode && room.takiMode.playerId === bot.id) {
+    const legal = takiLegalPlays(room, bot.id);
+    if (legal.length) {
+      const card = legal[Math.floor(Math.random() * legal.length)];
+      takiPlayCard(room, bot.id, card.id, io, code);
+    } else {
+      takiTakiDone(room, bot.id, io, code);
+    }
+    return;
+  }
+
+  const legal = takiLegalPlays(room, bot.id);
+  if (legal.length) {
+    const card = legal[Math.floor(Math.random() * legal.length)];
+    takiPlayCard(room, bot.id, card.id, io, code);
+    return;
+  }
+
+  takiDraw(room, bot.id, io, code);
+}
+
 /** ארץ עיר */
 const aeRooms = new Map();
 const pendingAeLeave = new Map();
@@ -1110,6 +1683,20 @@ io.on("connection", (socket) => {
       socket.data.xoClientId = clientId;
       socket.join(xoRoomName(room.code));
       broadcastXo(io, room);
+      return;
+    }
+
+    for (const room of takiRooms.values()) {
+      const p = room.players.find((x) => x.clientId === clientId && !x.isBot);
+      if (!p) continue;
+
+      const oldId = p.id;
+      cancelPendingTakiLeave(oldId);
+      p.id = socket.id;
+      socket.data.takiCode = room.code;
+      socket.data.takiClientId = clientId;
+      socket.join(takiRoomName(room.code));
+      broadcastTaki(io, room);
       return;
     }
   });
@@ -1806,6 +2393,194 @@ io.on("connection", (socket) => {
     if (typeof cb === "function") cb({ ok: true });
   });
 
+  socket.on("taki:create", (payload, cb) => {
+    const nv = normalizePlayerName(payload && payload.name);
+    if (!nv.ok) {
+      if (typeof cb === "function") cb({ ok: false, error: nv.error });
+      return;
+    }
+    const clientId = (payload && payload.clientId && String(payload.clientId)) || crypto.randomUUID();
+    const room = createTakiRoom(socket.id, nv.name, clientId);
+    socket.join(takiRoomName(room.code));
+    socket.data.takiCode = room.code;
+    socket.data.takiClientId = clientId;
+    if (typeof cb === "function") cb({ ok: true, room: serializeTakiRoom(room, socket.id) });
+    else socket.emit("taki:update", serializeTakiRoom(room, socket.id));
+  });
+
+  socket.on("taki:createSolo", (payload, cb) => {
+    const nv = normalizePlayerName(payload && payload.name);
+    if (!nv.ok) {
+      if (typeof cb === "function") cb({ ok: false, error: nv.error });
+      return;
+    }
+    const clientId = (payload && payload.clientId && String(payload.clientId)) || crypto.randomUUID();
+    const room = createTakiSoloRoom(socket.id, nv.name, clientId);
+    socket.join(takiRoomName(room.code));
+    socket.data.takiCode = room.code;
+    socket.data.takiClientId = clientId;
+    if (typeof cb === "function") cb({ ok: true, room: serializeTakiRoom(room, socket.id) });
+    else socket.emit("taki:update", serializeTakiRoom(room, socket.id));
+  });
+
+  socket.on("taki:join", (payload, cb) => {
+    const code = normalizeRoomCode((payload && payload.code) || "");
+    const nv = normalizePlayerName(payload && payload.name);
+    if (!nv.ok) {
+      if (typeof cb === "function") cb({ ok: false, error: nv.error });
+      return;
+    }
+    if (code.length !== 6) {
+      if (typeof cb === "function") cb({ ok: false, error: "הקוד הוא 6 ספרות" });
+      return;
+    }
+    const clientId = (payload && payload.clientId && String(payload.clientId)) || crypto.randomUUID();
+    const room = takiRooms.get(code);
+    if (!room) {
+      if (typeof cb === "function") cb({ ok: false, error: "החדר לא נמצא" });
+      return;
+    }
+    if (room.phase !== "lobby") {
+      if (typeof cb === "function") cb({ ok: false, error: "המשחק כבר התחיל" });
+      return;
+    }
+    if (room.solo) {
+      if (typeof cb === "function") cb({ ok: false, error: "לא ניתן להצטרף — משחק מול בוט" });
+      return;
+    }
+    if (room.players.length >= 4) {
+      if (typeof cb === "function") cb({ ok: false, error: "החדר מלא (עד 4 שחקנים)" });
+      return;
+    }
+    room.players.push({ id: socket.id, name: nv.name, clientId, score: 0, hand: [], isBot: false });
+    socket.join(takiRoomName(code));
+    socket.data.takiCode = code;
+    socket.data.takiClientId = clientId;
+    if (typeof cb === "function") cb({ ok: true, room: serializeTakiRoom(room, socket.id) });
+    broadcastTaki(io, room);
+  });
+
+  socket.on("taki:leave", (payload, cb) => {
+    const code = socket.data.takiCode;
+    const room = code && takiRooms.get(code);
+    if (!room) {
+      if (typeof cb === "function") cb({ ok: false, error: "לא בחדר" });
+      return;
+    }
+    cancelPendingTakiLeave(socket.id);
+    leaveTakiRoom(socket.id, io);
+    socket.leave(takiRoomName(code));
+    delete socket.data.takiCode;
+    delete socket.data.takiClientId;
+    socket.emit("taki:update", null);
+    if (typeof cb === "function") cb({ ok: true });
+  });
+
+  socket.on("taki:requestSync", () => {
+    const code = socket.data.takiCode;
+    const room = code && takiRooms.get(code);
+    if (!room || !room.players.some((p) => p.id === socket.id && !p.isBot)) return;
+    socket.emit("taki:update", serializeTakiRoom(room, socket.id));
+  });
+
+  socket.on("taki:start", (payload, cb) => {
+    const code = socket.data.takiCode;
+    const room = code && takiRooms.get(code);
+    if (!room || room.hostId !== socket.id) {
+      if (typeof cb === "function") cb({ ok: false, error: "רק המארח יכול להתחיל" });
+      return;
+    }
+    if (room.phase !== "lobby") {
+      if (typeof cb === "function") cb({ ok: false, error: "לא בלובי" });
+      return;
+    }
+    const n = room.players.length;
+    if (room.solo) {
+      if (n !== 4) {
+        if (typeof cb === "function") cb({ ok: false, error: "חסרים שחקנים" });
+        return;
+      }
+    } else if (n < 2 || n > 4) {
+      if (typeof cb === "function") cb({ ok: false, error: "נדרשים בין 2 ל־4 שחקנים" });
+      return;
+    }
+    takiStartRound(room);
+    room.phase = "playing";
+    room.lastResult = null;
+    broadcastTaki(io, room);
+    takiMaybeBot(io, code);
+    if (typeof cb === "function") cb({ ok: true });
+  });
+
+  socket.on("taki:play", (payload, cb) => {
+    const code = socket.data.takiCode;
+    const room = code && takiRooms.get(code);
+    if (!room || room.phase !== "playing") {
+      if (typeof cb === "function") cb({ ok: false, error: "לא במשחק" });
+      return;
+    }
+    const cardId = payload && payload.cardId;
+    if (!cardId || typeof cardId !== "string") {
+      if (typeof cb === "function") cb({ ok: false, error: "חסר קלף" });
+      return;
+    }
+    const res = takiPlayCard(room, socket.id, cardId, io, code);
+    if (typeof cb === "function") cb(res);
+  });
+
+  socket.on("taki:draw", (payload, cb) => {
+    const code = socket.data.takiCode;
+    const room = code && takiRooms.get(code);
+    if (!room || room.phase !== "playing") {
+      if (typeof cb === "function") cb({ ok: false, error: "לא במשחק" });
+      return;
+    }
+    const res = takiDraw(room, socket.id, io, code);
+    if (typeof cb === "function") cb(res);
+  });
+
+  socket.on("taki:takiDone", (payload, cb) => {
+    const code = socket.data.takiCode;
+    const room = code && takiRooms.get(code);
+    if (!room || room.phase !== "playing") {
+      if (typeof cb === "function") cb({ ok: false, error: "לא במשחק" });
+      return;
+    }
+    const res = takiTakiDone(room, socket.id, io, code);
+    if (typeof cb === "function") cb(res);
+  });
+
+  socket.on("taki:pickColor", (payload, cb) => {
+    const code = socket.data.takiCode;
+    const room = code && takiRooms.get(code);
+    if (!room || room.phase !== "playing") {
+      if (typeof cb === "function") cb({ ok: false, error: "לא במשחק" });
+      return;
+    }
+    const color = payload && payload.color;
+    const res = takiPickColor(room, socket.id, color, io, code);
+    if (typeof cb === "function") cb(res);
+  });
+
+  socket.on("taki:again", (payload, cb) => {
+    const code = socket.data.takiCode;
+    const room = code && takiRooms.get(code);
+    if (!room || room.hostId !== socket.id) {
+      if (typeof cb === "function") cb({ ok: false, error: "רק המארח" });
+      return;
+    }
+    if (room.phase !== "result") {
+      if (typeof cb === "function") cb({ ok: false, error: "לא אפשרי" });
+      return;
+    }
+    takiStartRound(room);
+    room.phase = "playing";
+    room.lastResult = null;
+    broadcastTaki(io, room);
+    takiMaybeBot(io, code);
+    if (typeof cb === "function") cb({ ok: true });
+  });
+
   socket.on("disconnect", () => {
     const sid = socket.id;
     const code = socket.data.roomCode;
@@ -1877,6 +2652,24 @@ io.on("connection", (socket) => {
           leaveXoRoom(sid, io);
         }, delayMs);
         pendingXoLeave.set(sid, tid);
+      }
+      return;
+    }
+
+    const takiCode = socket.data.takiCode;
+    if (takiCode) {
+      const room = takiRooms.get(takiCode);
+      if (room) {
+        const delayMs = room.phase === "lobby" ? 120000 : 90000;
+        cancelPendingTakiLeave(sid);
+        const tid = setTimeout(() => {
+          pendingTakiLeave.delete(sid);
+          const r = takiRooms.get(takiCode);
+          if (!r) return;
+          if (!r.players.some((p) => p.id === sid)) return;
+          leaveTakiRoom(sid, io);
+        }, delayMs);
+        pendingTakiLeave.set(sid, tid);
       }
     }
   });
