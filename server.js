@@ -426,6 +426,63 @@ function xoCheckDraw(board) {
   return board.every((c) => c !== null && c !== undefined);
 }
 
+/** Minimax: הבוט (O) ממקסם, השחקן (X) ממזער. עומק משמש לשבירת תיקו — ניצחון מהיר עדיף. */
+function xoMinimaxScore(board, depth, isMaximizing, botSym, humanSym) {
+  const w = xoCheckWinner(board);
+  if (w === botSym) return 10 - depth;
+  if (w === humanSym) return depth - 10;
+  if (xoCheckDraw(board)) return 0;
+
+  if (isMaximizing) {
+    let best = -Infinity;
+    for (let i = 0; i < 9; i++) {
+      if (board[i] != null && board[i] !== undefined) continue;
+      board[i] = botSym;
+      const s = xoMinimaxScore(board, depth + 1, false, botSym, humanSym);
+      board[i] = null;
+      if (s > best) best = s;
+    }
+    return best;
+  }
+  let best = Infinity;
+  for (let i = 0; i < 9; i++) {
+    if (board[i] != null && board[i] !== undefined) continue;
+    board[i] = humanSym;
+    const s = xoMinimaxScore(board, depth + 1, true, botSym, humanSym);
+    board[i] = null;
+    if (s < best) best = s;
+  }
+  return best;
+}
+
+const XO_MOVE_PREF = [4, 0, 2, 6, 8, 1, 3, 5, 7];
+
+function xoPickBestMove(board) {
+  const botSym = "O";
+  const humanSym = "X";
+  let bestScore = -Infinity;
+  const candidates = [];
+  for (let i = 0; i < 9; i++) {
+    if (board[i] != null && board[i] !== undefined) continue;
+    board[i] = botSym;
+    const s = xoMinimaxScore(board, 0, false, botSym, humanSym);
+    board[i] = null;
+    if (s > bestScore) {
+      bestScore = s;
+      candidates.length = 0;
+      candidates.push(i);
+    } else if (s === bestScore) {
+      candidates.push(i);
+    }
+  }
+  if (candidates.length === 0) return -1;
+  if (candidates.length === 1) return candidates[0];
+  for (const pref of XO_MOVE_PREF) {
+    if (candidates.includes(pref)) return pref;
+  }
+  return candidates[0];
+}
+
 function buildXoLastResult(room, draw, winnerPlayer) {
   return {
     draw: !!draw,
@@ -520,13 +577,8 @@ function runBotXoMove(io, code) {
   const human = room.players.find((p) => !p.isBot);
   if (!bot || !human || room.currentTurn !== bot.id) return;
 
-  const empties = [];
-  for (let i = 0; i < 9; i++) {
-    if (room.board[i] === null || room.board[i] === undefined) empties.push(i);
-  }
-  if (empties.length === 0) return;
-
-  const idx = empties[Math.floor(Math.random() * empties.length)];
+  const idx = xoPickBestMove(room.board);
+  if (idx < 0) return;
   room.board[idx] = "O";
 
   const w = xoCheckWinner(room.board);
