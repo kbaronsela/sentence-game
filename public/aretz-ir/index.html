@@ -135,10 +135,29 @@
       <section id="screen-results" class="card screen" hidden>
         <h2 class="section-title">תוצאות הסיבוב</h2>
         <p id="results-letter-line" class="results-letter-line"></p>
-        <div id="results-round-table-wrap" class="table-wrap"></div>
 
-        <h2 class="section-title" id="results-matrix-heading">ניקוד לפי אות</h2>
-        <div id="results-matrix-wrap" class="table-wrap"></div>
+        <div id="results-view-personal" class="results-view">
+          <h3 class="results-subtitle">המילים שלך והניקוד</h3>
+          <div id="results-my-table-wrap" class="table-wrap"></div>
+        </div>
+
+        <div id="results-view-aggregate" class="results-view" hidden>
+          <h3 class="results-subtitle">סיכום כל השחקנים (סיבוב נוכחי)</h3>
+          <div id="results-round-table-wrap" class="table-wrap"></div>
+          <h3 class="results-subtitle" id="results-matrix-heading">ניקוד לפי אות</h3>
+          <div id="results-matrix-wrap" class="table-wrap"></div>
+        </div>
+
+        <div id="results-view-others" class="results-view" hidden>
+          <h3 class="results-subtitle">מה כל שחקן מילא</h3>
+          <div id="results-others-table-wrap" class="table-wrap"></div>
+        </div>
+
+        <div class="results-nav actions stack">
+          <button type="button" class="btn secondary" id="btn-tab-my">המילים שלי</button>
+          <button type="button" class="btn secondary" id="btn-tab-aggregate">תוצאות</button>
+          <button type="button" class="btn secondary" id="btn-tab-others" hidden>מה האחרים מילאו?</button>
+        </div>
 
         <div class="actions stack">
           <button type="button" class="btn primary" id="btn-next-round" hidden>סיבוב נוסף</button>

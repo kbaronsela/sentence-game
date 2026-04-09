@@ -1518,6 +1518,11 @@ function serializeAeRoom(room, forSocketId) {
       lastBreakdown: room.lastBreakdown,
       totals: room.totals,
       history: room.history,
+      roundPlayerAnswers: room.players.map((p) => ({
+        name: p.name,
+        isYou: p.id === forSocketId,
+        answers: p.answers ? { ...p.answers } : emptyAeAnswers(),
+      })),
     };
   }
   return base;

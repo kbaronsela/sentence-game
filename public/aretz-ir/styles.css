@@ -397,6 +397,31 @@ select:focus {
   color: #5b5268;
 }
 
+.results-subtitle {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0.75rem 0 0.5rem;
+  color: #3d3552;
+}
+
+.results-view {
+  margin-bottom: 0.75rem;
+}
+
+.results-view[hidden] {
+  display: none !important;
+}
+
+.results-nav {
+  margin: 1rem 0 0.75rem;
+}
+
+.results-nav .btn.is-active {
+  border: 2px solid rgba(99, 102, 241, 0.65);
+  background: linear-gradient(180deg, #eef2ff 0%, #e0e7ff 100%);
+  color: #3730a3;
+}
+
 .table-wrap {
   overflow-x: auto;
   margin-bottom: 0.5rem;

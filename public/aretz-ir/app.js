@@ -141,6 +141,18 @@
     timerInterval = setInterval(tick, 500);
   }
 
+  function setResultsView(mode) {
+    const personal = $("results-view-personal");
+    const aggregate = $("results-view-aggregate");
+    const others = $("results-view-others");
+    personal.hidden = mode !== "personal";
+    aggregate.hidden = mode !== "aggregate";
+    others.hidden = mode !== "others";
+    $("btn-tab-my").classList.toggle("is-active", mode === "personal");
+    $("btn-tab-aggregate").classList.toggle("is-active", mode === "aggregate");
+    $("btn-tab-others").classList.toggle("is-active", mode === "others");
+  }
+
   function renderResults(room) {
     const letter = room.letter || "";
     $("results-letter-line").textContent = letter ? "האות בסיבוב: " + letter : "";
@@ -148,6 +160,28 @@
     const bd = room.lastBreakdown || {};
     const cats = room.categories || [];
     const players = room.players || [];
+    const myAnswers = room.myAnswers || {};
+    const me = players.find((p) => p.isYou);
+    const myRow = me && bd[me.id];
+
+    var myHtml = '<table class="score-table"><thead><tr><th>קטגוריה</th><th>המילה שלך</th><th>נקודות</th></tr></thead><tbody>';
+    cats.forEach((c) => {
+      const word = myAnswers[c.key] != null && String(myAnswers[c.key]).trim() !== "" ? String(myAnswers[c.key]).trim() : "—";
+      const pts =
+        myRow && myRow.categories && myRow.categories[c.key] != null ? myRow.categories[c.key] : "—";
+      myHtml +=
+        "<tr><td>" +
+        escapeHtml(c.label) +
+        "</td><td>" +
+        escapeHtml(word) +
+        "</td><td><strong>" +
+        pts +
+        "</strong></td></tr>";
+    });
+    const myTotal = myRow && myRow.roundTotal != null ? myRow.roundTotal : 0;
+    myHtml += '<tr><td colspan="2"><strong>סה״כ סיבוב</strong></td><td><strong>' + myTotal + "</strong></td></tr>";
+    myHtml += "</tbody></table>";
+    $("results-my-table-wrap").innerHTML = myHtml;
 
     var roundHtml = '<table class="score-table"><thead><tr><th>שחקן</th>';
     cats.forEach((c) => {
@@ -207,6 +241,32 @@
       mx += "</tr></tfoot></table>";
       matrixWrap.innerHTML = mx;
     }
+
+    const rpa = room.roundPlayerAnswers;
+    const othersBtn = $("btn-tab-others");
+    if (players.length > 1 && rpa && rpa.length > 1) {
+      othersBtn.hidden = false;
+      var ot = '<table class="score-table"><thead><tr><th>קטגוריה</th>';
+      rpa.forEach(function (rp) {
+        ot += "<th>" + escapeHtml(rp.name) + (rp.isYou ? " (אתה)" : "") + "</th>";
+      });
+      ot += "</tr></thead><tbody>";
+      cats.forEach(function (c) {
+        ot += "<tr><td>" + escapeHtml(c.label) + "</td>";
+        rpa.forEach(function (rp) {
+          const raw = rp.answers && rp.answers[c.key] != null ? String(rp.answers[c.key]).trim() : "";
+          ot += "<td>" + (raw ? escapeHtml(raw) : "—") + "</td>";
+        });
+        ot += "</tr>";
+      });
+      ot += "</tbody></table>";
+      $("results-others-table-wrap").innerHTML = ot;
+    } else {
+      othersBtn.hidden = true;
+      $("results-others-table-wrap").innerHTML = "";
+    }
+
+    setResultsView("personal");
   }
 
   function escapeHtml(s) {
@@ -356,6 +416,10 @@
       if (res && !res.ok) alert(res.error || "שגיאה");
     });
   });
+
+  $("btn-tab-my").addEventListener("click", () => setResultsView("personal"));
+  $("btn-tab-aggregate").addEventListener("click", () => setResultsView("aggregate"));
+  $("btn-tab-others").addEventListener("click", () => setResultsView("others"));
 
   $("btn-results-home").addEventListener("click", () => {
     socket.emit("ae:leave", {}, () => {
