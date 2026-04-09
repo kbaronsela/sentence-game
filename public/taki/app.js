@@ -49,6 +49,51 @@
     if (document.visibilityState === "visible" && socket.connected) requestTakiSync();
   });
 
+  var prevHadMyTurnAction = false;
+  var audioCtx = null;
+
+  function getAudioContext() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    return audioCtx;
+  }
+
+  function unlockAudioOnce() {
+    try {
+      var ctx = getAudioContext();
+      if (ctx.state === "suspended") ctx.resume();
+    } catch (e) {}
+  }
+  document.body.addEventListener("click", unlockAudioOnce, { once: true, passive: true });
+  document.body.addEventListener("touchstart", unlockAudioOnce, { once: true, passive: true });
+
+  function playTurnBeep() {
+    try {
+      var ctx = getAudioContext();
+      var start = function () {
+        var t = ctx.currentTime;
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(880, t);
+        osc.frequency.setValueAtTime(660, t + 0.08);
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.1, t + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.01, t + 0.22);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.25);
+      };
+      if (ctx.state === "suspended") {
+        ctx.resume().then(start);
+      } else {
+        start();
+      }
+    } catch (e) {}
+  }
+
   function showScreen(name) {
     Object.keys(screens).forEach((k) => {
       screens[k].hidden = k !== name;
@@ -149,6 +194,7 @@
     setError($("game-error"), null);
 
     if (!room) {
+      prevHadMyTurnAction = false;
       showScreen("enter");
       return;
     }
@@ -159,6 +205,7 @@
     $("lobby-code-row").hidden = false;
 
     if (room.phase === "lobby") {
+      prevHadMyTurnAction = false;
       showScreen("lobby");
       $("lobby-code").textContent = room.code;
       const list = $("lobby-players");
@@ -182,6 +229,12 @@
     }
 
     if (room.phase === "playing") {
+      var myTurnAction = !!(room.isMyTurn || room.mustPickColor);
+      if (myTurnAction && !prevHadMyTurnAction) {
+        playTurnBeep();
+      }
+      prevHadMyTurnAction = myTurnAction;
+
       showScreen("game");
       renderDiscard($("discard-slot"), room.topCard);
 
@@ -226,6 +279,7 @@
     }
 
     if (room.phase === "result" && room.result) {
+      prevHadMyTurnAction = false;
       showScreen("result");
       const r = room.result;
       $("result-banner").textContent = (r.winnerName || "מישהו") + " ניצח/ה את הסיבוב! (+" + (r.roundPoints || 0) + " נק׳)";
@@ -241,6 +295,7 @@
       return;
     }
 
+    prevHadMyTurnAction = false;
     showScreen("enter");
   }
 

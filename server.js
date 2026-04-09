@@ -98,6 +98,137 @@ function generateBotSentence(seed) {
     `בלילה הזה ${s} נראה לי כמו סימן מהעתיד.`,
     `הדלת נפתחה ואז הופיע ${s} בלי להקדים מילה.`,
     `שאלתי את עצמי איך ${s} קשור לכל הסיפור הזה.`,
+    `לא ידעתי אם לצחוק או להיבהל כששמעתי את השם ${s}.`,
+    `מישהו לחש לי באוזן: תזכור את ${s}, זה חשוב.`,
+    `במקרה פתחתי את המגירה ומצאתי שם תזכורת ישנה על ${s}.`,
+    `הרוח נשבה חזק, ואז ${s} נזכר שוב בכל השיחות.`,
+    `אמא תמיד אמרה שאין להתעלם מ${s} כשמופיע בדרך.`,
+    `בחלום ראיתי את ${s} צף מעל הבית, בלי הסבר.`,
+    `המורה כתבה על הלוח מילה אחת: ${s}, וכולם שתקו.`,
+    `הקפה התקרר בזמן שחשבתי מה ${s} באמת אומר לי.`,
+    `באוטובוס ישבתי ליד מישהו שדיבר רק על ${s}.`,
+    `פתאום הטלפון צלצל, והמסך הציג את המילה ${s}.`,
+    `הילדים רצו לחצר וצעקו: תראו, ${s}!`,
+    `ספרתי עד עשר, נשמתי עמוק, ואז חזרתי ל${s}.`,
+    `השכן מלמעלה הוריד מוזיקה חזקה, ועדיין שמעתי את ${s}.`,
+    `במפת הדרכים סומן במדויק המקום שבו נפגשנו ב${s}.`,
+    `העיתון כתב משהו קטן על ${s}, וזה הספיק כדי לשנות יום.`,
+    `אף אחד לא האמין שאפשר לשכוח את ${s}, אבל ניסינו.`,
+    `השמש ירדה, והצללים נראו כמו צורה של ${s}.`,
+    `במעלית היה ריח של גשם וזיכרון ישן של ${s}.`,
+    `הקלטתי לעצמי הודעה: אל תשכחי את ${s} למחרת בבוקר.`,
+    `הספר נסגר בקול חד, כאילו ${s} היה הסוף של הפרק.`,
+    `במסעדה השירות היה איטי, אז חשבתי שוב על ${s}.`,
+    `הכלב הריח משהו, רץ לכיוון ${s} ולא חזר מהר.`,
+    `השעון הראה חצות, ודיוק לשעה נזכרתי ב${s}.`,
+    `מישהו שלח לי תמונה מטושטשת, ובקושי זיהיתי את ${s}.`,
+    `המזגן נדלק לבד, וזה הרגיש כמו רמז על ${s}.`,
+    `בשקט של הבית שמעתי רק את המילה ${s} חוזרת בראש.`,
+    `המפה הראתה דרך ארוכה, ובסופה כתוב רק ${s}.`,
+    `חבר ישן התעורר ואמר פתאום: רגע, מה עם ${s}?`,
+    `המדריך עצר את הקבוצה ואמר: כאן התחיל ${s}.`,
+    `במייל הגיע נושא ריק, ובגוף המכתב מילה אחת: ${s}.`,
+    `הילד צייר עיגול, בתוכו כתב בקושי את ${s}.`,
+    `השלג נמס, והמילה ${s} נשארה על החלון.`,
+    `בתור חיכיתי שעה, וכל הזמן חזרתי אל ${s}.`,
+    `הרופא אמר שזה יעבור, אבל לא הסביר מה זה ${s}.`,
+    `בחנות נעלמו כל המוצרים חוץ מכרטיס קטן עם ${s}.`,
+    `הסבא חייך ואמר: בימיי קראו לזה ${s}.`,
+    `הרדיו שידר שקט, ואז קול אחד אמר ${s} והסתיים.`,
+    `בשביל העפר היה רך, כאילו ${s} מחכה שם מזמן.`,
+    `המטרה הייתה ברורה: להגיע ל${s} לפני בוקר.`,
+    `איש לא ידע מי כתב על הקיר את המילה ${s}.`,
+    `הסרט הסתיים בפתאומיות, והמסך נשאר עם ${s}.`,
+    `במעלית האחרונה ירדתי בקומה הלא נכונה בגלל ${s}.`,
+    `הקיץ היה חם, והשמיים נראו כמו רקע ל${s}.`,
+    `מישהו השאיר מפתח תחת השטיח, ועליו חרוט ${s}.`,
+    `השכיחות שלי גרמה לי לשכוח הכל חוץ מ${s}.`,
+    `במסיבה המוזיקה נעצרה, ואז כולם שרו ${s} ביחד.`,
+    `הספרים זזו לבד על המדף כשהוזכר ${s}.`,
+    `הגשם הכה בחלון, וכל טיפה נשמעה כמו הברה מ${s}.`,
+    `בדרך חזרה איבדתי את המפתח, אבל מצאתי את ${s}.`,
+    `השעון המעורר נשבר, אבל המוח התעורר על ${s}.`,
+    `מישהו צייץ ברשת משהו מוזר על ${s}, וזה הפך לוויראלי.`,
+    `המדרון היה תלול, ובתחתית מישהו צעק: ${s}!`,
+    `השקט בחדר היה כבד, עד שמישהו אמר בקול ${s}.`,
+    `במזוודה מצאתי מכתב ישן שמתחיל ונגמר ב${s}.`,
+    `הכוכבים יצאו, ואחד מהם נראה כמו ${s} מרחוק.`,
+    `המזג האוויר אמר "בהיר", אבל בלב הרגשתי ${s}.`,
+    `במסעדת דרכים היה תפריט קצר, ובו רק תבנית של ${s}.`,
+    `הילד שאל למה השמיים כחולים, ועניתי משהו על ${s}.`,
+    `המפתח התעקם בחור, כאילו ${s} לא רצה שנכנס.`,
+    `בחלום השני אותו אדם חזר, הפעם בלי להזכיר את ${s}.`,
+    `השכנה תלתה כביסה, ועל גג הגג רוח ${s}.`,
+    `המסלול התפתל בין עצים, ובכל פנייה חשבתי על ${s}.`,
+    `מישהו השאיר אופניים, ועל המנעול הדביק מדבקה: ${s}.`,
+    `הקפה נשפך על השולחן, והכתמים נראו כמו ${s}.`,
+    `בתחנת הרדיו שמעתי שיר ישן שמזכיר את ${s}.`,
+    `המדרגות נשברו בקומה האחרונה, ושם כתוב ${s}.`,
+    `השעון בכנסייה תקין, אבל הפעמון הכה בשם ${s}.`,
+    `במעבדה הכל היה נקי מדי, חוץ מפתק אחד: ${s}.`,
+    `הסופה עברה, ובחצר נשאר רק סימן של ${s}.`,
+    `מישהו צילם את השמיים והוסיף כיתוב: תודה ל${s}.`,
+    `הספר נפל מהמדף, ונפתח בדיוק על העמוד של ${s}.`,
+    `במקלחת הזכרתי פתאום שכחתי משהו חשוב על ${s}.`,
+    `הדובר איבד את המילים, ואז אמר רק ${s} והתיישב.`,
+    `בשביל החצץ הבריק, וכל אבן נראית כמו חלק מ${s}.`,
+    `המונית עצרה פתאום, והנהג אמר: ירדתם ב${s}.`,
+    `בליל קיץ שמעתי צרצרים, וזה נשמע כמו שיר על ${s}.`,
+    `המזוודה הייתה קלה מדי, כאילו ${s} נשאר בבית.`,
+    `מישהו צייר על החול עיגול וכתב בתוכו ${s}.`,
+    `הרוח סגרה את החלון, ואיתה נסגר גם הנושא ${s}.`,
+    `במסיבת יום הולדת כיבו את האורות על שם ${s}.`,
+    `המדריך איבד את הקבוצה, אבל לא את המילה ${s}.`,
+    `במעלית כתוב "לא לשבת", ומישהו הוסיף ביד: ${s}.`,
+    `השעון בטלפון קפא, והמסך הציג רק את ${s}.`,
+    `בגן היה שלט "אסור לדלג", ומישהו כתב מתחת: ${s}.`,
+    `הסיר רתח על האש, ומריח התבלינים נזכרתי ב${s}.`,
+    `מישהו השאיר פרחים ליד הדלת, ועל הכרטיס רק ${s}.`,
+    `הסרטון נגמר, והמלל האחרון היה בדיוק ${s}.`,
+    `בשביל החזרה היה חשוך, וכל פנס הדליק זיכרון של ${s}.`,
+    `המורה ביקשה נושא לחיבור, ומישהו קרא בקול: ${s}!`,
+    `המפתח נתקע בדלת, כאילו ${s} לא רוצה שניכנס הביתה.`,
+    `בשמיים הופיע ענן מוזר, וכולם קראו לו ${s}.`,
+    `המכתב הגיע בלי חותמת, רק עם המילה ${s} בפנים.`,
+    `במסעדה הזמינו לי מנה, ועל הצלחת היה רושם של ${s}.`,
+    `השעון המעורר שינה צליל, ועכשיו הוא מצפצף את ${s}.`,
+    `מישהו ניפח בלון וכתב עליו בטוש את ${s}.`,
+    `הדרך חזרה הייתה ארוכה, אבל ${s} ליווה אותי בראש.`,
+    `בחוף הים מצאתי בקבוק עם פתק קטן: זוכרים את ${s}?`,
+    `המזגן נשבר, והחום גרם לי לחלום על ${s}.`,
+    `במעלית היה ריח של צבע רטוב, ועל הקיר נשרטט ${s}.`,
+    `השכן ניגן בגיטרה שיר עצוב על ${s}.`,
+    `במסעדה הזמינו לי מרק, ובתוכו צף משהו שנראה כמו ${s}.`,
+    `הספר נפל מהיד, ונפתח על משפט שמתחיל ב${s}.`,
+    `מישהו צילם את הירח, והוסיף כיתוב: שלום ל${s}.`,
+    `המדריך אמר שנעצור כאן, כי מעבר לזה מתחיל ${s}.`,
+    `בשקט של הלילה שמעתי דפיקה, ואז קול אמר ${s}.`,
+    `המפתחות נעלמו, ורק מפתח אחד נשאר עם התווית ${s}.`,
+    `במסיבה כיבו את האור, ומישהו לחש את המילה ${s}.`,
+    `השביל התפצל לשניים, ועל הסימון רק ${s}.`,
+    `המורה ביקשה שקט, ואז קראה בקול את ${s}.`,
+    `בחלום ראיתי עיר שלמה שקוראים לה ${s}.`,
+    `המזגן שחרר קרירות, ופתאום הרגשתי קרוב ל${s}.`,
+    `מישהו השאיר תיק, ובתוכו מחברת ריקה חוץ משורה אחת: ${s}.`,
+    `השעון דפק שלוש, ודיוק אז נזכרתי למה חשוב ${s}.`,
+    `במעלית היה מראה, ובשקופית כתוב: מי זה ${s}?`,
+    `הסופה כיבתה את החשמל, ונשארנו רק עם ${s} בזיכרון.`,
+    `בשביל העפר הופיעו עקבות, ולידן כתוב ${s}.`,
+    `המדריך אמר שזה המקום האחרון לפני ${s}.`,
+    `מישהו שלח לי גלויה בלי כתובת, רק עם ${s} בצד.`,
+    `השמש עלתה, והצל הראשון נראה כמו ${s}.`,
+    `במסעדה השירות היה מהיר, אבל המנה באה עם טעם של ${s}.`,
+    `הספר נשאר פתוח על השולחן, והעמוד הראשי אמר ${s}.`,
+    `במעלית היה כפתור שלא עבד, ומעליו מדבקה: ${s}.`,
+    `הילד ביקש סיפור לפני השינה, ואז הזכרתי את ${s}.`,
+    `הרוח סגרה את הדלת, ופתחה בי שאלה על ${s}.`,
+    `במסיבה כולם רקדו, חוץ ממי שחשב על ${s}.`,
+    `המפתח נשבר במנעול, ומישהו צחק: זה בגלל ${s}.`,
+    `השמיים נצבעו באדום, ומישהו לחש: זה סימן ל${s}.`,
+    `במסעדה הזמינו לי מנה מיוחדת בשם ${s}.`,
+    `המדרגות הובילו למרתף, ושם על הקיר רק ${s}.`,
+    `מישהו השאיר אופניים, והמנעול היה עם הקוד ${s}.`,
+    `השעון הראה ארבע, ודיוק אז נגמר הסיפור על ${s}.`,
   ];
   return lines[Math.floor(Math.random() * lines.length)];
 }
@@ -457,6 +588,22 @@ function xoMinimaxScore(board, depth, isMaximizing, botSym, humanSym) {
 
 const XO_MOVE_PREF = [4, 0, 2, 6, 8, 1, 3, 5, 7];
 
+/** חלק מהמהלכים אקראיים חוקיים — לא אופטימלי, כדי לאפשר ניצחון מדי פעם */
+const XO_BOT_RANDOM_MOVE_CHANCE = 0.27;
+
+function xoPickBotMove(board) {
+  const legal = [];
+  for (let i = 0; i < 9; i++) {
+    if (board[i] != null && board[i] !== undefined) continue;
+    legal.push(i);
+  }
+  if (legal.length === 0) return -1;
+  if (Math.random() < XO_BOT_RANDOM_MOVE_CHANCE) {
+    return legal[Math.floor(Math.random() * legal.length)];
+  }
+  return xoPickBestMove(board);
+}
+
 function xoPickBestMove(board) {
   const botSym = "O";
   const humanSym = "X";
@@ -577,7 +724,7 @@ function runBotXoMove(io, code) {
   const human = room.players.find((p) => !p.isBot);
   if (!bot || !human || room.currentTurn !== bot.id) return;
 
-  const idx = xoPickBestMove(room.board);
+  const idx = xoPickBotMove(room.board);
   if (idx < 0) return;
   room.board[idx] = "O";
 
@@ -756,6 +903,8 @@ function takiMatchesDiscard(card, top) {
     return card.color === top.color;
   }
   if (card.type === "plus2" && top.type === "plus2") return true;
+  if (card.type === "stop" && top.type === "stop") return true;
+  if (card.type === "reverse" && top.type === "reverse") return true;
   if (card.color && top.color && card.color === top.color) return true;
   if (card.type === "num" && top.type === "num" && card.value === top.value) return true;
   return false;
@@ -958,11 +1107,22 @@ function takiApplySpecialAfterPlay(room, card, playerId) {
   takiAdvanceTurn(room, 1);
 }
 
-function takiMaybeBot(io, code) {
+const TAKI_BOT_DELAY_MS = 450;
+/** לאחר שבוט שיחק — המתנה ארוכה יותר לפני מהלך הבא של בוט, כדי שהשחקן יראה מה הונח */
+const TAKI_BOT_TO_BOT_DELAY_MS = 1100;
+
+function takiMaybeBot(io, code, lastActorId) {
   const room = takiRooms.get(code);
   if (!room || room.phase !== "playing") return;
   const cur = takiCurrentPlayer(room);
-  if (cur && cur.isBot) scheduleBotTaki(io, code, 450);
+  if (!cur || !cur.isBot) return;
+  let afterBot = false;
+  if (lastActorId) {
+    const prev = room.players.find((p) => p.id === lastActorId);
+    afterBot = !!(prev && prev.isBot);
+  }
+  const delayMs = afterBot ? TAKI_BOT_TO_BOT_DELAY_MS : TAKI_BOT_DELAY_MS;
+  scheduleBotTaki(io, code, delayMs);
 }
 
 function takiPlayCard(room, playerId, cardId, io, code) {
@@ -990,26 +1150,26 @@ function takiPlayCard(room, playerId, cardId, io, code) {
         room.takiMode = { color: card.color, playerId };
       }
       broadcastTaki(io, room);
-      takiMaybeBot(io, code);
+      takiMaybeBot(io, code, playerId);
       return { ok: true };
     }
     room.takiMode = null;
     takiApplySpecialAfterPlay(room, card, playerId);
     broadcastTaki(io, room);
-    takiMaybeBot(io, code);
+    takiMaybeBot(io, code, playerId);
     return { ok: true };
   }
 
   if (card.type === "change") {
     room.colorPickPlayerId = playerId;
     broadcastTaki(io, room);
-    takiMaybeBot(io, code);
+    takiMaybeBot(io, code, playerId);
     return { ok: true };
   }
 
   takiApplySpecialAfterPlay(room, card, playerId);
   broadcastTaki(io, room);
-  takiMaybeBot(io, code);
+  takiMaybeBot(io, code, playerId);
   return { ok: true };
 }
 
@@ -1021,7 +1181,7 @@ function takiPickColor(room, playerId, color, io, code) {
   room.colorPickPlayerId = null;
   takiAdvanceTurn(room, 1);
   broadcastTaki(io, room);
-  takiMaybeBot(io, code);
+  takiMaybeBot(io, code, playerId);
   return { ok: true };
 }
 
@@ -1030,7 +1190,7 @@ function takiTakiDone(room, playerId, io, code) {
   room.takiMode = null;
   takiAdvanceTurn(room, 1);
   broadcastTaki(io, room);
-  takiMaybeBot(io, code);
+  takiMaybeBot(io, code, playerId);
   return { ok: true };
 }
 
@@ -1049,7 +1209,7 @@ function takiDraw(room, playerId, io, code) {
       return { ok: true };
     }
     broadcastTaki(io, room);
-    takiMaybeBot(io, code);
+    takiMaybeBot(io, code, playerId);
     return { ok: true };
   }
 
@@ -1067,7 +1227,7 @@ function takiDraw(room, playerId, io, code) {
   }
   takiAdvanceTurn(room, 1);
   broadcastTaki(io, room);
-  takiMaybeBot(io, code);
+  takiMaybeBot(io, code, playerId);
   return { ok: true };
 }
 
@@ -1312,7 +1472,18 @@ function wordStartsWithLetter(w, letter) {
 function isValidHebrewWord(w) {
   const t = stripHebrewNiqqud(normalizeAeWord(w));
   if (t.length < 2) return false;
-  return /^[\u05D0-\u05EA]+$/.test(t);
+  const parts = t.split(" ").filter(Boolean);
+  if (parts.length > 2) return false;
+  const hebrewOnly = /^[\u05D0-\u05EA]+$/;
+  if (parts.length === 1) {
+    return parts[0].length >= 2 && hebrewOnly.test(parts[0]);
+  }
+  return (
+    parts[0].length >= 2 &&
+    parts[1].length >= 2 &&
+    hebrewOnly.test(parts[0]) &&
+    hebrewOnly.test(parts[1])
+  );
 }
 
 function sanitizeAeAnswers(payload) {
@@ -2159,6 +2330,22 @@ io.on("connection", (socket) => {
     room.roundDeadline = room.timeLimitSec > 0 ? Date.now() + room.timeLimitSec * 1000 : null;
     broadcastAe(io, room);
     scheduleAeRoundTimer(io, code);
+    if (typeof cb === "function") cb({ ok: true });
+  });
+
+  socket.on("ae:draft", (payload, cb) => {
+    const code = socket.data.aeCode;
+    const room = code && aeRooms.get(code);
+    if (!room || room.phase !== "playing") {
+      if (typeof cb === "function") cb({ ok: false, error: "לא במשחק" });
+      return;
+    }
+    const me = room.players.find((p) => p.id === socket.id);
+    if (!me || me.done) {
+      if (typeof cb === "function") cb({ ok: false, error: "כבר סיימת" });
+      return;
+    }
+    me.answers = sanitizeAeAnswers(payload && payload.answers);
     if (typeof cb === "function") cb({ ok: true });
   });
 

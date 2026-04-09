@@ -52,9 +52,6 @@
 
   socket.on("connect", onConnected);
   socket.on("reconnect", onConnected);
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible" && socket.connected) requestAeSync();
-  });
 
   function showScreen(name) {
     Object.keys(screens).forEach((k) => {
@@ -106,6 +103,28 @@
     });
   }
 
+  function getPlayInputs() {
+    return Array.from($("play-fields").querySelectorAll(".ae-input"));
+  }
+
+  function focusNextFromAeInput(current) {
+    const inputs = getPlayInputs();
+    const i = inputs.indexOf(current);
+    if (i === -1) return;
+    if (i < inputs.length - 1) {
+      inputs[i + 1].focus();
+    } else {
+      const btn = $("btn-done");
+      if (btn && !btn.disabled) btn.focus();
+    }
+  }
+
+  function focusPrevFromAeInput(current) {
+    const inputs = getPlayInputs();
+    const i = inputs.indexOf(current);
+    if (i > 0) inputs[i - 1].focus();
+  }
+
   function collectAnswers() {
     const out = {};
     $("play-fields").querySelectorAll(".ae-input").forEach((inp) => {
@@ -113,6 +132,33 @@
     });
     return out;
   }
+
+  var aeDraftTimer = null;
+
+  function emitAeDraftNow() {
+    if (!socket.connected) return;
+    if (screens.play.hidden) return;
+    if ($("btn-done").disabled) return;
+    socket.emit("ae:draft", { answers: collectAnswers() });
+  }
+
+  function scheduleAeDraft() {
+    clearTimeout(aeDraftTimer);
+    aeDraftTimer = setTimeout(function () {
+      aeDraftTimer = null;
+      emitAeDraftNow();
+    }, 280);
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      clearTimeout(aeDraftTimer);
+      aeDraftTimer = null;
+      emitAeDraftNow();
+    } else if (document.visibilityState === "visible" && socket.connected) {
+      requestAeSync();
+    }
+  });
 
   function formatTick(deadline) {
     if (!deadline) return "";
@@ -132,6 +178,10 @@
     el.hidden = false;
     function tick() {
       el.textContent = "נשארו " + formatTick(deadline);
+      const left = deadline - Date.now();
+      if (left > 0 && left <= 6000) {
+        emitAeDraftNow();
+      }
       if (Date.now() >= deadline) {
         clearTimerInterval();
         el.textContent = "הזמן נגמר";
@@ -140,6 +190,33 @@
     tick();
     timerInterval = setInterval(tick, 500);
   }
+
+  $("play-fields").addEventListener("input", scheduleAeDraft);
+
+  $("play-fields").addEventListener("keydown", function (e) {
+    const t = e.target;
+    if (!t.classList || !t.classList.contains("ae-input")) return;
+    if (t.disabled) return;
+    const inputs = getPlayInputs();
+    const i = inputs.indexOf(t);
+    if (i === -1) return;
+
+    if (e.key === "Enter") {
+      e.preventDefault();
+      focusNextFromAeInput(t);
+      return;
+    }
+    if (e.key === "Tab") {
+      if (e.shiftKey) {
+        if (i === 0) return;
+        e.preventDefault();
+        focusPrevFromAeInput(t);
+      } else {
+        e.preventDefault();
+        focusNextFromAeInput(t);
+      }
+    }
+  });
 
   function setResultsView(mode) {
     const personal = $("results-view-personal");
@@ -315,6 +392,17 @@
       showScreen("play");
       $("play-letter").textContent = room.letter || "—";
       const my = room.myAnswers || {};
+      const wrap = $("play-fields");
+      var savedAeFocusKey = null;
+      const prevFocus = document.activeElement;
+      if (
+        prevFocus &&
+        prevFocus.classList &&
+        prevFocus.classList.contains("ae-input") &&
+        wrap.contains(prevFocus)
+      ) {
+        savedAeFocusKey = prevFocus.dataset.key || null;
+      }
       buildPlayFields(room.categories, my);
       const doneSelf = (room.players || []).find((p) => p.isYou && p.done);
       $("play-fields").querySelectorAll(".ae-input").forEach((inp) => {
@@ -329,6 +417,16 @@
         $("play-wait-status").textContent = "";
       }
       startPlayTimer(room.roundDeadline);
+      if (!doneSelf) {
+        requestAnimationFrame(function () {
+          var el = null;
+          if (savedAeFocusKey) {
+            el = wrap.querySelector('.ae-input[data-key="' + savedAeFocusKey + '"]');
+          }
+          if (!el) el = wrap.querySelector(".ae-input");
+          if (el && !el.disabled) el.focus();
+        });
+      }
       return;
     }
 
@@ -405,6 +503,8 @@
   });
 
   $("btn-done").addEventListener("click", () => {
+    clearTimeout(aeDraftTimer);
+    aeDraftTimer = null;
     const answers = collectAnswers();
     socket.emit("ae:done", { answers }, (res) => {
       if (res && !res.ok) setError($("play-error"), res.error || "שגיאה");

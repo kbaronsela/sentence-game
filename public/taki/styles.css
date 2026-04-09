@@ -353,7 +353,6 @@ input:focus {
   flex-wrap: wrap;
 }
 
-.taki-pile,
 .taki-center {
   text-align: center;
 }
@@ -363,22 +362,6 @@ input:focus {
   font-size: 0.78rem;
   color: var(--muted);
   margin-bottom: 0.35rem;
-}
-
-.taki-deck-badge {
-  width: 56px;
-  height: 80px;
-  margin: 0 auto;
-  border-radius: 10px;
-  background: linear-gradient(145deg, #6366f1 0%, #4f46e5 100%);
-  border: 2px solid rgba(99, 102, 241, 0.35);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 1.1rem;
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.25);
 }
 
 .discard-slot {
