@@ -180,19 +180,13 @@
         scoresEl.appendChild(row);
       });
 
-      const cur = room.players.find((x) => x.isYou);
-      const myId = cur && room.currentPlayerId;
       let status = "";
       if (room.mustPickColor) {
         status = "בחרו צבע לקלף ״שינוי צבע״.";
-      } else if (room.isMyTurn || (room.inTakiChain && room.currentPlayerId && cur && room.currentPlayerId === getMySocketId(room))) {
+      } else if (room.isMyTurn) {
         status = room.inTakiChain ? "מצב טאקי — הניחו קלפים בצבע או לחצו ״סיימתי״." : "התור שלך.";
       } else {
-        const other = room.players.find((x) => !x.isYou && x.name && room.currentPlayerId);
-        const name =
-          room.players.find((x) => x.name && !x.isYou && room.currentPlayerId === guessCurrentName(room)) ||
-          room.players.find((x) => !x.isYou);
-        status = "התור של " + (name ? name.name : "שחקן אחר") + ".";
+        status = "התור של " + (room.currentTurnName || "…") + ".";
       }
       if (room.plus2Stack > 0) {
         $("plus2-hint").hidden = false;
@@ -206,7 +200,7 @@
       $("color-pick").hidden = !room.mustPickColor;
       $("btn-taki-done").hidden = !(room.inTakiChain && room.isMyTurn);
 
-      const canPlayHand = (room.isMyTurn || (room.inTakiChain && room.currentPlayerId && cur)) && !room.mustPickColor;
+      const canPlayHand = room.isMyTurn && !room.mustPickColor;
       renderHand($("taki-hand"), room.myHand, canPlayHand, (id) => {
         socket.emit("taki:play", { cardId: id }, (res) => {
           if (res && !res.ok) setError($("game-error"), res.error || "שגיאה");
@@ -234,14 +228,6 @@
     }
 
     showScreen("enter");
-  }
-
-  function getMySocketId(room) {
-    return null;
-  }
-
-  function guessCurrentName(room) {
-    return null;
   }
 
   socket.on("taki:update", (room) => {

@@ -1159,11 +1159,7 @@ function serializeTakiRoom(room, forSocketId) {
     direction: room.direction,
     currentPlayerId: cur ? cur.id : null,
     currentTurnName: cur ? cur.name : null,
-    isMyTurn:
-      room.phase === "playing" &&
-      cur &&
-      cur.id === forSocketId &&
-      (!room.colorPickPlayerId || room.colorPickPlayerId === forSocketId),
+    isMyTurn: room.phase === "playing" && cur && cur.id === forSocketId && !room.colorPickPlayerId,
     myHand: me ? [...(me.hand || [])] : [],
     takiMode: room.takiMode,
     plus2Stack: room.plus2Stack,
@@ -1219,7 +1215,7 @@ function runBotTakiMove(io, code) {
 
   if (room.plus2Stack > 0) {
     const legal = takiLegalPlays(room, bot.id);
-    if (legal.length && Math.random() < 0.85) {
+    if (legal.length) {
       const card = legal[Math.floor(Math.random() * legal.length)];
       takiPlayCard(room, bot.id, card.id, io, code);
     } else {
