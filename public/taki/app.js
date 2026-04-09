@@ -136,31 +136,55 @@
     const el = document.createElement("div");
     el.className = "taki-card-face " + cardClass(card.color) + (small ? " small" : "");
     if (card.type === "num") {
+      const v = String(card.value);
       el.classList.add("taki-card-face--num");
-      el.textContent = String(card.value);
+      el.innerHTML =
+        '<span class="taki-pip taki-pip-tl" aria-hidden="true">' +
+        v +
+        "</span>" +
+        '<span class="taki-pip taki-pip-br" aria-hidden="true">' +
+        v +
+        "</span>" +
+        '<span class="taki-main taki-main-num">' +
+        v +
+        "</span>";
     } else if (card.type === "plus2") {
       el.classList.add("taki-card-face--plus2");
       el.innerHTML =
-        '<span class="taki-emoji-plus2" aria-hidden="true"><span class="taki-p2-plus">➕</span><span class="taki-p2-two">2</span></span>';
+        '<span class="taki-pip taki-pip-tl taki-pip--plus2" aria-hidden="true"><span class="taki-pip-plus">+</span><span class="taki-pip-digit">2</span></span>' +
+        '<span class="taki-pip taki-pip-br taki-pip--plus2" aria-hidden="true"><span class="taki-pip-plus">+</span><span class="taki-pip-digit">2</span></span>' +
+        '<div class="taki-main taki-main-plus2" aria-hidden="true">' +
+        '<span class="taki-plus2-stack"><span class="taki-p2-plus">+</span><span class="taki-p2-two">2</span></span>' +
+        "</div>";
     } else if (card.type === "stop") {
-      el.classList.add("taki-card-face--icon");
-      el.textContent = "✋";
+      el.classList.add("taki-card-face--stop");
+      el.innerHTML =
+        '<div class="taki-main taki-main-stop" aria-hidden="true"><span class="taki-stop-hand">\u270B</span></div>';
       el.setAttribute("aria-label", "עצור");
     } else if (card.type === "reverse") {
       el.classList.add("taki-card-face--reverse");
       el.innerHTML =
-        '<span class="taki-rev-arrows" aria-hidden="true"><span class="taki-rev-a">\u2192</span><span class="taki-rev-a">\u2190</span></span>';
+        '<div class="taki-main taki-main-rev" aria-hidden="true">' +
+        '<span class="taki-rev-pill"><span class="taki-rev-a">\u2192</span><span class="taki-rev-a">\u2190</span></span>' +
+        "</div>";
       el.setAttribute("aria-label", "הפוך כיוון");
     } else if (card.type === "taki") {
       el.classList.add("taki-card-face--taki");
-      el.textContent = "TAKI";
+      el.innerHTML =
+        '<div class="taki-main taki-main-taki" aria-hidden="true">' +
+        '<span class="taki-logo-pill"><span class="taki-logo-text">TAKI</span></span>' +
+        "</div>";
     } else if (card.type === "change") {
-      el.classList.add("taki-card-face--icon");
+      el.classList.add("taki-card-face--change");
       if (card.color && CHANGE_COLOR_EMOJI[card.color]) {
-        el.textContent = CHANGE_COLOR_EMOJI[card.color];
+        el.innerHTML =
+          '<div class="taki-main taki-main-change taki-main-change--solid" data-ch="' +
+          card.color +
+          '" aria-hidden="true"></div>';
         el.setAttribute("aria-label", "שינוי צבע — " + (COLOR_NAMES[card.color] || card.color));
       } else {
-        el.textContent = "🎨";
+        el.innerHTML =
+          '<div class="taki-main taki-main-change" aria-hidden="true"><span class="taki-change-wild"></span></div>';
         el.setAttribute("aria-label", "שינוי צבע");
       }
     }

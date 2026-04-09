@@ -365,7 +365,7 @@ input:focus {
 }
 
 .discard-slot {
-  min-height: 92px;
+  min-height: 118px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -383,205 +383,383 @@ input:focus {
   background: transparent;
   cursor: pointer;
   flex-shrink: 0;
+  filter: drop-shadow(0 3px 6px rgba(15, 23, 42, 0.22));
+  transition: transform 0.12s ease, filter 0.15s ease;
+}
+
+.taki-card:hover:not(:disabled) {
+  transform: translateY(-3px);
+  filter: drop-shadow(0 8px 14px rgba(15, 23, 42, 0.28));
 }
 
 .taki-card:disabled {
-  opacity: 0.35;
+  opacity: 0.38;
   cursor: not-allowed;
+  filter: grayscale(0.25) drop-shadow(0 2px 4px rgba(15, 23, 42, 0.12));
 }
 
 .taki-card-face {
-  width: 64px;
-  min-height: 92px;
-  border-radius: 10px;
+  position: relative;
+  width: 76px;
+  min-height: 112px;
+  border-radius: 13px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 1.05rem;
+  font-weight: 800;
+  font-size: 1rem;
   text-align: center;
-  padding: 0.35rem;
-  line-height: 1.2;
-  border: 2px solid rgba(0, 0, 0, 0.12);
-  box-shadow: 0 4px 12px rgba(42, 36, 56, 0.12);
+  line-height: 1.15;
+  border: 1px solid rgba(0, 0, 0, 0.28);
+  box-shadow:
+    0 2px 0 rgba(0, 0, 0, 0.18),
+    0 10px 20px rgba(15, 23, 42, 0.18),
+    inset 0 2px 0 rgba(255, 255, 255, 0.35);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.taki-card-face::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.88);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.taki-card-face::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.38) 0%,
+    rgba(255, 255, 255, 0.06) 38%,
+    transparent 52%,
+    rgba(0, 0, 0, 0.12) 100%
+  );
+  pointer-events: none;
+  z-index: 2;
 }
 
 .taki-card-face.small {
-  width: 52px;
-  min-height: 76px;
-  font-size: 0.9rem;
+  width: 60px;
+  min-height: 88px;
+  border-radius: 11px;
 }
 
-/* ספרות כטקסט בלבד — בלי רקע keycap */
-.taki-card-face--num {
-  font-size: 2.35rem;
-  font-weight: 800;
+.taki-card-face.small::before {
+  inset: 3px;
+  border-radius: 8px;
+}
+
+.taki-pip {
+  position: absolute;
+  z-index: 3;
+  font-weight: 900;
+  font-size: 0.68rem;
   line-height: 1;
-  letter-spacing: -0.04em;
   font-variant-numeric: lining-nums tabular-nums;
-  -webkit-font-smoothing: antialiased;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
-.taki-card-face--num.taki-card-face.c-red,
-.taki-card-face--num.taki-card-face.c-blue {
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+.taki-pip-tl {
+  top: 7px;
+  left: 8px;
 }
 
-.taki-card-face--num.taki-card-face.c-yellow {
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.45);
+.taki-pip-br {
+  bottom: 7px;
+  right: 8px;
+  transform: rotate(180deg);
 }
 
-.taki-card-face--num.taki-card-face.c-green {
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.35);
+.taki-card-face.c-yellow .taki-pip {
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
 }
 
-.taki-card-face.small.taki-card-face--num {
-  font-size: 1.8rem;
+.taki-pip--plus2 {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.02rem;
 }
 
-.taki-card-face--icon {
-  font-size: 1.9rem;
-  line-height: 1;
+.taki-pip-plus {
+  font-size: 0.58rem;
+  font-weight: 900;
 }
 
-.taki-card-face.small.taki-card-face--icon {
-  font-size: 1.45rem;
+.taki-pip-digit {
+  font-size: 0.72rem;
+  font-weight: 900;
 }
 
-.taki-card-face--plus2 {
+.taki-main {
+  position: relative;
+  z-index: 3;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.25rem;
 }
 
-.taki-emoji-plus2 {
+.taki-card-face--num {
+  padding: 0;
+}
+
+.taki-main-num {
+  font-size: 2.65rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  font-variant-numeric: lining-nums tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.28);
+}
+
+.taki-card-face.c-yellow .taki-main-num {
+  color: #3e2723;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.taki-card-face.c-green .taki-main-num {
+  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.22);
+}
+
+.taki-card-face.small .taki-main-num {
+  font-size: 2.05rem;
+}
+
+.taki-card-face.small .taki-pip {
+  font-size: 0.58rem;
+}
+
+.taki-card-face.small .taki-pip-digit {
+  font-size: 0.62rem;
+}
+
+.taki-card-face.small .taki-pip-plus {
+  font-size: 0.48rem;
+}
+
+.taki-main-plus2 {
+  flex-direction: column;
+}
+
+.taki-plus2-stack {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.02rem;
+  gap: 0;
   line-height: 1;
 }
 
 .taki-p2-plus {
-  font-size: 1.15rem;
+  font-size: 1.25rem;
+  font-weight: 900;
+  line-height: 1;
 }
 
 .taki-p2-two {
-  font-size: 1.45rem;
-  font-weight: 800;
-  letter-spacing: -0.03em;
+  font-size: 1.55rem;
+  font-weight: 900;
+  letter-spacing: -0.04em;
   line-height: 1;
   font-variant-numeric: lining-nums tabular-nums;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
-.taki-card-face.c-red .taki-p2-two,
-.taki-card-face.c-blue .taki-p2-two {
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-}
-
-.taki-card-face.c-yellow .taki-p2-two {
-  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.45);
-}
-
-.taki-card-face.c-green .taki-p2-two {
-  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.35);
+.taki-card-face.c-yellow .taki-p2-two,
+.taki-card-face.c-yellow .taki-p2-plus {
+  color: #3e2723;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 
 .taki-card-face.small .taki-p2-plus {
-  font-size: 0.95rem;
+  font-size: 1.05rem;
 }
 
 .taki-card-face.small .taki-p2-two {
-  font-size: 1.2rem;
+  font-size: 1.3rem;
 }
 
-.taki-card-face--reverse {
+.taki-main-stop {
+  width: 100%;
+  height: 100%;
+  min-height: 4.5rem;
+}
+
+.taki-stop-hand {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.2rem;
+  width: 2.85rem;
+  height: 2.85rem;
+  margin: 0 auto;
+  font-size: 1.75rem;
+  line-height: 1;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 50%;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.22);
 }
 
-.taki-rev-arrows {
+.taki-card-face.small .taki-stop-hand {
+  width: 2.25rem;
+  height: 2.25rem;
+  font-size: 1.4rem;
+}
+
+.taki-main-rev {
+  width: 100%;
+  padding: 0.25rem;
+}
+
+.taki-rev-pill {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.08rem;
-  line-height: 1;
+  gap: 0.06rem;
+  padding: 0.35rem 0.45rem;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 10px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* חיצי Unicode (→ ←) בלי רקע אמוג'י */
 .taki-rev-a {
   display: block;
-  font-size: 1.65rem;
-  font-weight: 800;
+  font-size: 1.45rem;
+  font-weight: 900;
   line-height: 1;
-  font-family: "Assistant", ui-sans-serif, system-ui, sans-serif;
-}
-
-.taki-card-face.c-red .taki-rev-a,
-.taki-card-face.c-blue .taki-rev-a {
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
-}
-
-.taki-card-face.c-yellow .taki-rev-a {
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.45);
-}
-
-.taki-card-face.c-green .taki-rev-a {
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.35);
+  color: #1e293b;
 }
 
 .taki-card-face.small .taki-rev-a {
-  font-size: 1.35rem;
+  font-size: 1.2rem;
 }
 
-.taki-card-face.small .taki-rev-arrows {
-  gap: 0.04rem;
+.taki-main-taki {
+  width: 100%;
+  padding: 0.35rem;
 }
 
-.taki-card-static .taki-card-face {
+.taki-logo-pill {
+  display: block;
+  padding: 0.42rem 0.55rem;
+  background: rgba(255, 255, 255, 0.97);
+  border-radius: 8px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.taki-logo-text {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  color: #0f172a;
+  line-height: 1.1;
+}
+
+.taki-card-face.small .taki-logo-text {
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+}
+
+.taki-main-change {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem;
+}
+
+.taki-change-wild {
+  display: block;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  background: conic-gradient(
+    #e53935 0deg 90deg,
+    #fdd835 90deg 180deg,
+    #1565c0 180deg 270deg,
+    #2e7d32 270deg 360deg
+  );
+  border: 3px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28), inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+
+.taki-card-face.small .taki-change-wild {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-width: 2px;
+}
+
+.taki-main-change--solid {
+  width: 2.85rem;
+  height: 2.85rem;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.taki-main-change--solid[data-ch="R"] {
+  background: radial-gradient(circle at 35% 30%, #ff8a80, #c62828 55%, #8b0000);
+}
+
+.taki-main-change--solid[data-ch="Y"] {
+  background: radial-gradient(circle at 35% 30%, #fff9c4, #fbc02d 55%, #f57f17);
+}
+
+.taki-main-change--solid[data-ch="B"] {
+  background: radial-gradient(circle at 35% 30%, #90caf9, #1565c0 55%, #0d47a1);
+}
+
+.taki-main-change--solid[data-ch="G"] {
+  background: radial-gradient(circle at 35% 30%, #a5d6a7, #2e7d32 55%, #1b5e20);
+}
+
+.taki-card-face.small .taki-main-change--solid {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.taki-card.taki-card-static {
+  filter: none;
   cursor: default;
 }
 
+.taki-card.taki-card-static:hover {
+  transform: none;
+}
+
 .taki-card-face.c-red {
-  background: linear-gradient(160deg, #fecaca 0%, #dc2626 100%);
+  background: linear-gradient(155deg, #ff7043 0%, #e53935 42%, #b71c1c 100%);
   color: #fff;
 }
 
 .taki-card-face.c-yellow {
-  background: linear-gradient(160deg, #fef08a 0%, #ca8a04 100%);
-  color: #422006;
+  background: linear-gradient(155deg, #fff59d 0%, #ffeb3b 38%, #fbc02d 100%);
+  color: #3e2723;
 }
 
 .taki-card-face.c-blue {
-  background: linear-gradient(160deg, #93c5fd 0%, #1d4ed8 100%);
+  background: linear-gradient(155deg, #64b5f6 0%, #1e88e5 45%, #0d47a1 100%);
   color: #fff;
 }
 
 .taki-card-face.c-green {
-  background: linear-gradient(160deg, #86efac 0%, #15803d 100%);
-  color: #052e16;
+  background: linear-gradient(155deg, #81c784 0%, #43a047 45%, #1b5e20 100%);
+  color: #fff;
 }
 
 .taki-card-face.c-wild {
-  background: linear-gradient(160deg, #ddd6fe 0%, #7c3aed 50%, #db2777 100%);
+  background: linear-gradient(145deg, #ba68c8 0%, #7b1fa2 40%, #4a148c 100%);
   color: #fff;
-  font-size: 0.82rem;
-}
-
-.taki-card-face--taki {
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  line-height: 1.15;
-}
-
-.taki-card-face.small.taki-card-face--taki {
-  font-size: 0.62rem;
 }
 
 .taki-hand-wrap {
