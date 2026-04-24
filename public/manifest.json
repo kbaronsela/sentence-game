@@ -1,0 +1,27 @@
+{
+  "id": "/",
+  "name": "משחקי ילדות",
+  "short_name": "משחקי ילדות",
+  "description": "סיפור במשפטים, אבן נייר מספריים, ארץ עיר, איקס עיגול, טאקי — מקוון מהמחשב או מהטלפון",
+  "lang": "he",
+  "dir": "rtl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fef6f0",
+  "theme_color": "#fef6f0",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
